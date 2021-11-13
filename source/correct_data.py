@@ -1,7 +1,7 @@
 from pandas import DataFrame
 from numpy import mean
 import requests
-from typing import List, Optional
+from typing import List
 
 
 class MagCorrector:

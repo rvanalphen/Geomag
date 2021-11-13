@@ -4,8 +4,6 @@ from typing import List, Optional
 from pyproj import CRS
 import string
 
-from refactor.clean_data import DataCleaner
-
 class GeoMag(BaseModel):
 
     filepath: Path or string

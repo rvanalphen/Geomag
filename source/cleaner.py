@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from pandas import DataFrame
 
 
-class DataCleaner(ABC):
+class CleaningStrategy(ABC):
 
     @abstractmethod
     def _direction_lookup(self,destination_x: float, origin_x: float,

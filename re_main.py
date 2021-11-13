@@ -1,11 +1,11 @@
 
 from pathlib import Path
-from pyproj import Transformer, CRS
-from re_geomag import GeoMag
-from clean_data import DataCleaner
-from load_data import path_to_df
-from correct_data import MagCorrector
-from plot_data import DataPlotter
+
+from pandas.core.frame import DataFrame
+from source.plot_data import DataPlotter
+from source.geomag import GeoMag
+from source.app import App
+from source.clean_data import NorthSouthCleaner
 
 
 ######################## - INPUTS - #############################
@@ -18,35 +18,34 @@ DATES = ['2019-10-17', '2019-10-18', '2019-10-19', '2019-10-21']
 
 ######################### - Main - ###############################
 
+
 def main():
+
+    # * initializing and validating input parameters
     geomag = GeoMag(
-        filepath= FILE,
-        input_epsg = INEPSG,
-        output_epsg = OUTEPSG,
-        )
+        filepath=FILE,
+        input_epsg=INEPSG,
+        output_epsg=OUTEPSG,
+        date_range=DATES
+    )
 
-    #* turning file into a dataframe
-    df = path_to_df(geomag.filepath)
-    
-    #* transforming lat long to utm
-    transformer = Transformer.from_crs(geomag.input_epsg, geomag.output_epsg)
-    df["Easting"],df["Northing"] = transformer.transform(df.Lat.values,df.Long.values)
+    # * create the application
+    app = App(geomag)
 
+    # * transforming lat long to utm
+    app.transform_coords()
 
-    #* Correcting for the total field
-    # magcorrector = MagCorrector()
-    # magcorrector.global_detrend(df,value=48488)
+    # * cleaning data based on input strategey
+    app.clean_data(NorthSouthCleaner())
 
+    # * getting only the local field values
+    app.subtract_total_field()
 
-    # #* cleaning up the data to keep only what I want
-    # cleaner = DataCleaner()
-    # cleaner.cut_heading(df,geomag.direction)
+    plotter = DataPlotter(app.data)
+    plotter.simple_plot()
 
-    # #* plotting the data
-    # plotter = DataPlotter(df)
-    # plotter.simple_plot()
+    print(app.data)
 
-    print(df)
 
 if __name__ == "__main__":
     main()

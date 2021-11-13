@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from pandas import DataFrame
-from re_geomag import GeoMag
 
 class DataPlotter:
     def __init__(self,data: DataFrame) -> None:
