@@ -3,6 +3,7 @@ from pathlib import Path
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
+from source.seperate_data import DistanceSperator
 
 
 ######################## - INPUTS - #############################
@@ -38,11 +39,13 @@ def main():
     # * getting only the local field values
     app.subtract_total_field(value=48488)
 
-    plotter = DataPlotter(app.data)
-    plotter.simple_plot()
+    app.separate_lines(DistanceSperator())
+
+    # plotter = DataPlotter(app.data)
+    # plotter.simple_plot()
     
 
-    # print(app.data)
+    # print(app.lines['line 5'])
 
 
 if __name__ == "__main__":

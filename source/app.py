@@ -1,13 +1,17 @@
+from typing import Dict, List
 from pandas.core.frame import DataFrame
-from source.cut_data import CuttingStrategey,NorthSouthCut,EastWestCut
+from source.cut_data import CuttingStrategey, NorthSouthCut, EastWestCut
 from source.geomag import GeoMag
 from source.load_data import path_to_df
 from source.correct_data import MagCorrector
 from pyproj import Transformer, CRS
 from math import atan2, pi
 
+from source.seperate_data import DataSeparator
+
+
 def _direction_lookup(destination_x: float, origin_x: float,
-                        destination_y: float, origin_y: float) -> float:
+                      destination_y: float, origin_y: float) -> float:
     # CREDIT: https://www.analytics-link.com/post/2018/08/21/calculating-the-compass-direction-between-two-points-in-python
     deltaX = destination_x - origin_x
 
@@ -25,12 +29,14 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
     return degrees_final
 
+
 class App:
     def __init__(self, parameters: GeoMag) -> None:
         self.parameters = parameters
         self.data: DataFrame = path_to_df(parameters.filepath)
+        self.lines = None
 
-    def transform_coords(self):
+    def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)
         out_crs = CRS.from_epsg(self.parameters.output_epsg)
 
@@ -65,18 +71,18 @@ class App:
         mode_heading = self.data.Heading.round().mode()[0]
 
         if mode_heading < 44 or mode_heading > 316\
-             or (mode_heading > 136 and mode_heading < 224):
+                or (mode_heading > 136 and mode_heading < 224):
             return NorthSouthCut()
 
         else:
             return EastWestCut()
 
-    def cut_data(self):
+    def cut_data(self) -> DataFrame:
 
         cleaning_strategy = self._choose_strategey()
         self.data = cleaning_strategy.cut_heading(self.data)
 
-    def subtract_total_field(self, value: int = None):
+    def subtract_total_field(self, value: int = None) -> None:
 
         magcorrector = MagCorrector()
 
@@ -85,3 +91,14 @@ class App:
                 self.data, dates=self.parameters.dates, elevation=self.parameters.elevation)
         else:
             magcorrector.global_detrend(self.data, value)
+
+    def _update_data(self) -> None:
+        idx =[]
+        for key in self.lines:
+            idx.extend(self.lines[key].index.values)
+        
+        self.data = self.data[self.data.index.isin(idx)]
+
+    def separate_lines(self, separation_strategy: DataSeparator) -> Dict:
+        self.lines = separation_strategy.split(self.data)
+

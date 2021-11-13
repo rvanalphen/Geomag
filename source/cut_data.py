@@ -53,25 +53,3 @@ class EastWestCut(CuttingStrategey):
         return data[cond].reset_index(drop=True)
 
 
-    # def calc_dist(self,G=False) -> Series:
-    #     dist = []
-    #     length = len(data.index)
-    #     cols = data.columns
-    #     data.sort_values(by=['Northing'], ascending=True)
-    #     data.reset_index(drop=True)
-    #     if 'Easting' in cols:
-    #         for i in range(length-1):
-    #             pointa = (
-    #                 data.Easting.values[i], data.Northing.values[i])
-    #             pointb = (
-    #                 data.Easting.values[i+1], data.Northing.values[i+1])
-
-    #             dist.append(math.dist(pointa, pointb))
-    #     else:
-    #         print('need to transform to utm')
-    #         exit()
-
-    #     dist.insert(0, 0)
-
-    #     data["Dist"] = dist
-
