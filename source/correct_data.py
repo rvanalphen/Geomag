@@ -8,10 +8,10 @@ class MagCorrector:
 
     def _get_value(self, data: DataFrame, dates: List[str], elevation: str) -> int:
 
-        val_list = []
         lat = mean(data.Lat.values)
         lon = mean(data.Long.values)
 
+        val_list = []
         for i, _ in enumerate(dates):
 
             url = 'https://geomag.bgs.ac.uk/web_service/GMModels/igrf/13/?Latitude=%s&Longitude=%s&altitude=%s&date=%s&format=json' % (
@@ -33,8 +33,7 @@ class MagCorrector:
     def global_detrend(self, data: DataFrame, value: int = None, dates: List[str] = None, elevation: str = None) -> None:
         if not value:
             try:
-                value = self._get_value(data, dates)
-                print("run code ", value)
+                value = self._get_value(data, dates, elevation)
             except:
                 raise AttributeError("Need dates in a list")
 

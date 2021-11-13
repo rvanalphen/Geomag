@@ -1,11 +1,8 @@
 
 from pathlib import Path
-
-from pandas.core.frame import DataFrame
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.clean_data import NorthSouthCleaner
 
 
 ######################## - INPUTS - #############################
@@ -15,6 +12,7 @@ FILE = Path(f'{DATA_DIR}/20191019_184358.txt')
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-17', '2019-10-18', '2019-10-19', '2019-10-21']
+ELEVATION = 800
 
 ######################### - Main - ###############################
 
@@ -26,7 +24,6 @@ def main():
         filepath=FILE,
         input_epsg=INEPSG,
         output_epsg=OUTEPSG,
-        date_range=DATES
     )
 
     # * create the application
@@ -36,15 +33,16 @@ def main():
     app.transform_coords()
 
     # * cleaning data based on input strategey
-    app.clean_data(NorthSouthCleaner())
+    app.clean_data()
 
     # * getting only the local field values
-    app.subtract_total_field()
+    app.subtract_total_field(value=48488)
 
     plotter = DataPlotter(app.data)
     plotter.simple_plot()
+    
 
-    print(app.data)
+    # print(app.data)
 
 
 if __name__ == "__main__":
