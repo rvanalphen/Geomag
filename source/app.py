@@ -1,5 +1,5 @@
 from pandas.core.frame import DataFrame
-from source.clean_data import CleaningStrategy,NorthSouthCleaner,EastWestCleaner
+from source.cut_data import CuttingStrategey,NorthSouthCut,EastWestCut
 from source.geomag import GeoMag
 from source.load_data import path_to_df
 from source.correct_data import MagCorrector
@@ -58,7 +58,7 @@ class App:
         except:
             raise AttributeError('Data has no Easting or Northing')
 
-    def _choose_strategey(self) -> CleaningStrategy:
+    def _choose_strategey(self) -> CuttingStrategey:
 
         self._get_heading(self.data)
 
@@ -66,12 +66,12 @@ class App:
 
         if mode_heading < 44 or mode_heading > 316\
              or (mode_heading > 136 and mode_heading < 224):
-            return NorthSouthCleaner()
+            return NorthSouthCut()
 
         else:
-            return EastWestCleaner()
+            return EastWestCut()
 
-    def clean_data(self):
+    def cut_data(self):
 
         cleaning_strategy = self._choose_strategey()
         self.data = cleaning_strategy.cut_heading(self.data)

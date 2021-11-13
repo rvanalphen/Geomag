@@ -33,7 +33,7 @@ def main():
     app.transform_coords()
 
     # * cleaning data based on input strategey
-    app.clean_data()
+    app.cut_data()
 
     # * getting only the local field values
     app.subtract_total_field(value=48488)

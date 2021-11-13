@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from pandas import DataFrame
 
-class CleaningStrategy(ABC):
+class CuttingStrategey(ABC):
 
     @abstractmethod
     def cut_heading(self,data: DataFrame, buffer: int) -> None:
+        
         """[This Abstract Base Class sets a template to take in a pandas DataFrame and optional a buffer. It then only keeps the 
         rows in which they have a heading based on the strategy subclass employed]
 
@@ -16,7 +17,7 @@ class CleaningStrategy(ABC):
             AttributeError: [Input is not a DataFrame]
         """
 
-class NorthSouthCleaner(CleaningStrategy):
+class NorthSouthCut(CuttingStrategey):
 
     def cut_heading(self,data: DataFrame, buffer: int = 5) -> None:
 
@@ -34,7 +35,7 @@ class NorthSouthCleaner(CleaningStrategy):
         return data[cond].reset_index(drop=True)
 
 
-class EastWestCleaner(CleaningStrategy):
+class EastWestCut(CuttingStrategey):
 
     def cut_heading(self,data: DataFrame, buffer: int = 5) -> None:
 
@@ -51,36 +52,6 @@ class EastWestCleaner(CleaningStrategy):
 
         return data[cond].reset_index(drop=True)
 
-
-
-
-
-
-
-
-
-    #         for i in range(length):
-    #             if data.Heading[i] < 0+buffer or data.Heading[i] > 360-buffer\
-    #                     or data.Heading[i] > 180-buffer and data.Heading[i] < 180+buffer:
-
-    #                 cond.append(True)
-    #             else:
-    #                 cond.append(False)
-
-    #     elif dir == "EW" or dir == "ew":
-    #         for i in range(length):
-    #             if data.Heading[i] > 270-buffer and data.Heading[i] < 270+buffer\
-    #                     or data.Heading[i] > 90-buffer and data.Heading[i] < 90+buffer:
-
-    #                 cond.append(True)
-    #             else:
-    #                 cond.append(False)
-
-    #     else:
-    #         print("Must specify a cut by direction either 'NS','EW', or both in a list")
-    #         exit()
-
-    #     data = data[cond].reset_index(drop=True)
 
     # def calc_dist(self,G=False) -> Series:
     #     dist = []
