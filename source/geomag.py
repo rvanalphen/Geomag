@@ -29,7 +29,7 @@ class GeoMag(BaseModel):
 
     @validator('dates')
     def dates_validator(cls,dts):
-        if not type(dts) == List:
+        if not type(dts) == list:
             raise TypeError('Dates must be of type List')
                 
         return dts

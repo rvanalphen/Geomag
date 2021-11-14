@@ -6,7 +6,6 @@ from source.load_data import path_to_df
 from source.correct_data import MagCorrector
 from pyproj import Transformer, CRS
 from math import atan2, pi
-
 from source.seperate_data import DataSeparator
 
 
@@ -74,7 +73,7 @@ class App:
         else:
             return EastWestCut()
 
-    def cut_data(self) -> DataFrame:
+    def cut_data(self) -> None:
 
         cleaning_strategy = self._choose_strategey()
         self.data = cleaning_strategy.cut_heading(self.data)
