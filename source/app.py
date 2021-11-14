@@ -44,29 +44,26 @@ class App:
         self.data["Easting"], self.data["Northing"] = transformer.transform(
             self.data.Lat.values, self.data.Long.values)
 
-    def _get_heading(self, data: DataFrame) -> None:
-        try:
-            if 'Easting' in data.columns.values:
-                compass = []
-                for i in range(len(data.index)-1):
-                    pointa = (
-                        data.Easting.values[i], data.Northing.values[i])
-                    pointb = (
-                        data.Easting.values[i+1], data.Northing.values[i+1])
-                    compass.append(
-                        _direction_lookup(
-                            pointb[0], pointa[0], pointb[1], pointa[1])
-                    )
-                compass.insert(0, 999)
+    def _get_heading(self) -> None:
+        cols = self.data.columns.values
+        if 'Easting' in cols:
+            compass = []
+            for i in range(len(self.data.index)-1):
+                pointa = (
+                    self.data.Easting.values[i],self.data.Northing.values[i])
+                pointb = (
+                    self.data.Easting.values[i+1],self.data.Northing.values[i+1])
+                compass.append(
+                    _direction_lookup(
+                        pointb[0], pointa[0], pointb[1], pointa[1])
+                )
+            compass.insert(0, 999)
 
-            data["Heading"] = compass
-
-        except:
-            raise AttributeError('Data has no Easting or Northing')
+        self.data["Heading"] = compass
 
     def _choose_strategey(self) -> CuttingStrategey:
 
-        self._get_heading(self.data)
+        self._get_heading()
 
         mode_heading = self.data.Heading.round().mode()[0]
 

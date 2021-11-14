@@ -44,7 +44,7 @@ def main():
     # plotter = DataPlotter(app.data)
     # plotter.simple_plot()
     
-
+    # print(app.data)
     # print(app.lines['line 5'])
 
 
