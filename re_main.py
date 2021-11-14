@@ -9,11 +9,12 @@ from source.seperate_data import DistanceSperator
 ######################## - INPUTS - #############################
 
 DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/'
-FILE = Path(f'{DATA_DIR}/20191019_184358.txt')
+# FILE = Path(f'{DATA_DIR}/20191019_184358.txt')# north - south lines 
+FILE = Path(f'{DATA_DIR}/20191021_231039.txt')# east - west lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
-ELEVATION = 800
+ELEVATION = 0
 
 ######################### - Main - ###############################
 
@@ -29,25 +30,34 @@ def main():
         elevation=ELEVATION
     )
 
-    # * create the application
+    # * create the application and plotting class
     app = App(geomag)
+    plotter = DataPlotter()
 
     # * transforming lat long to utm
     app.transform_coords()
+    # plotter.simple_plot(app.data)
 
     # * cleaning data based on input strategey
     app.cut_data()
+    # plotter.simple_plot(app.data)
 
     # * getting only the local field values  - value=48488
     app.subtract_total_field()
 
-    # app.separate_lines(DistanceSperator())
+    # * seperating each line into a dict under app.lines
+    app.separate_lines(DistanceSperator())
 
-    # plotter = DataPlotter(app.data)
-    # plotter.simple_plot()
+    # * plotting individual lines
+    # plotter.plot_mag_profile(app.parameters.filepath,app.lines,key_name='line 1')
+
+    # * plotting things together 
+    plotter.simple_plot(app.parameters.filepath,app.data)
     
-    print(app.data)
-    # print(app.lines['line 5'])
+    # print(app.data)
+    # for key in app.lines:
+    #     print(key)
+    #     print(app.lines[key])
 
 
 if __name__ == "__main__":

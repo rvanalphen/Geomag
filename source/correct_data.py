@@ -27,7 +27,7 @@ class MagCorrector:
         'coordinateSystem=D&lat1=%s&lon1=%s&elevation=%s&startYear=%s&startMonth=%s&startDay=%s&endYear=%s&endMonth=%s'
         '&endDay=%s&resultFormat=json') % (
             lat, lon, elevation, start[0],start[1],start[2],end[0],end[1],end[2])
-        print(url)
+        # print(url)
         r = requests.get(url)
         if r.status_code != 200:
             raise requests.exceptions.RequestException

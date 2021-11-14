@@ -43,8 +43,8 @@ class EastWestCut(CuttingStrategey):
         cond = []
 
         for i in range(length):
-            if data.Heading[i] < 0+buffer or data.Heading[i] > 360-buffer\
-                    or data.Heading[i] > 180-buffer and data.Heading[i] < 180+buffer:
+            if data.Heading[i] > 270-buffer and data.Heading[i] < 270+buffer\
+                or data.Heading[i] > 90-buffer and data.Heading[i] < 90+buffer:
 
                 cond.append(True)
             else:
