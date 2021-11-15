@@ -14,7 +14,7 @@ FILE = Path(f'{DATA_DIR}/20191019_184358.txt')# north - south lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
-ELEVATION = 0
+ELEVATION = '0'
 
 ######################### - Main - ###############################
 
@@ -36,36 +36,26 @@ def main():
 
     # * transforming lat long to utm
     app.transform_coords()
-    # plotter.simple_plot(app.data)
+    # plotter.simple_plot(app.parameters.filepath,app.data)
 
-    # # * cleaning data based on input strategey
-    # app.cut_data()
-    # # plotter.simple_plot(app.data)
+    # * cleaning data based on input strategey
+    app.cut_data()
+    # plotter.simple_plot(app.parameters.filepath,app.data)
 
-    # # * getting only the local field values  - value=48488
-    # app.subtract_total_field()
+    # * getting only the local field values  - value=48488
+    app.subtract_total_field()
 
-    # # * seperating each line into a dict under app.lines
+    # * seperating each line into a dict under app.lines
     app.separate_lines(DistanceSperator())
 
-    # # * exporting the changed data depending on strategy employed
+    # * exporting the changed data depending on strategy employed
     app.export_data(ExportAll())
 
-
-
-
-
-
-    # * plotting individual lines
+    # # * plotting individual lines
     # plotter.plot_mag_profile(app.parameters.filepath,app.lines,key_name='line 1')
 
-    # * plotting each magnetic profile with an offset
+    # # * plotting each magnetic profile with an offset
     # plotter.plot_offset_profile(app.parameters.filepath,app.lines)
-
-    # print(app.data)
-    # for key in app.lines:
-    #     print(key)
-    #     print(app.lines[key])
 
 
 if __name__ == "__main__":
