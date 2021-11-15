@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 class DataExporter(ABC):
 
     @abstractmethod
-    def _make_directory(path: Union[PosixPath, str],lines= False) -> str:
+    def _make_directory(path: Union[PosixPath, str]) -> str:
         pass
 
     @abstractmethod
@@ -126,3 +126,15 @@ class ExportLines(DataExporter):
                 print('data not saved')
                 print('###')
                 break
+
+class ExportAll(DataExporter):
+    
+    def _make_directory(self,path: Union[PosixPath, str]) -> str:
+        pass
+
+    def _make_outfile(self,path: Union[PosixPath, str]) -> str:
+        pass
+
+    def exporter(self,path: Union[PosixPath, str], data: DataFrame, lines: Dict) -> None:
+        ExportPatch().exporter(path,data,lines)
+        ExportLines().exporter(path,data,lines)

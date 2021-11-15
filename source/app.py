@@ -33,7 +33,7 @@ class App:
     def __init__(self, parameters: GeoMag) -> None:
         self.parameters = parameters
         self.data: DataFrame = path_to_df(parameters.filepath)
-        self.lines = None
+        self.lines: Dict = None
 
     def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)

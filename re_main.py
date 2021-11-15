@@ -4,7 +4,7 @@ from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
 from source.seperate_data import DistanceSperator
-from source.export_data import ExportPatch,ExportLines
+from source.export_data import ExportPatch,ExportLines,ExportAll
 
 ######################## - INPUTS - #############################
 
@@ -48,7 +48,8 @@ def main():
     # # * seperating each line into a dict under app.lines
     app.separate_lines(DistanceSperator())
 
-    app.export_data(ExportLines())
+    # # * exporting the changed data depending on strategy employed
+    app.export_data(ExportAll())
 
 
 
