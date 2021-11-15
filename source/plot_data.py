@@ -82,3 +82,43 @@ class DataPlotter:
                     direction = self._choose_plot(data[key])
 
                 self.plot_mag_profile(path, data, key, direction)
+
+
+    def plot_offset_profile(self,path: Union[Path, str], data: Dict, offset=150):
+        path = str(path).split('/')[-1]
+        start_offset = 0
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        
+        for index, (key, value) in enumerate(data.items()):
+            if index == 0:
+                direction = self._choose_plot(data[key])
+            else:
+                break
+
+        if "NS" not in direction:
+            for key in data:
+                ax.plot(data[key].Easting, data[key].Mag_nT+start_offset, marker="o", linestyle='None',
+                        markersize=3, label=str(key))
+
+                ax.set_xlabel("Northing")
+                ax.set_ylabel("Magnetic Signal (nT)")
+
+                ax.set_title(path+' - Lines offset by: '+str(offset)+'nT')
+
+                ax.legend()
+                start_offset += offset
+        else:
+            for key in data:
+                ax.plot(data[key].Northing, data[key].Mag_nT+start_offset, marker="o", linestyle='None',
+                        markersize=3, label=str(key))
+
+                ax.set_xlabel("Northing")
+                ax.set_ylabel("Magnetic Signal (nT)")
+
+                ax.set_title(path+' - Lines offset by: '+str(offset)+'nT')
+
+                ax.legend()
+                start_offset += offset
+        plt.show()
+

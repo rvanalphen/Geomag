@@ -7,7 +7,7 @@ from source.correct_data import MagCorrector
 from pyproj import Transformer, CRS
 from math import atan2, pi
 from source.seperate_data import DataSeparator
-
+from source.export_data import exporter
 
 def _direction_lookup(destination_x: float, origin_x: float,
                       destination_y: float, origin_y: float) -> float:
@@ -97,4 +97,13 @@ class App:
 
     def separate_lines(self, separation_strategy: DataSeparator) -> Dict:
         self.lines = separation_strategy.split(self.data)
+        self._update_data()
 
+    def export_data(self,data: bool =False, lines: bool = False):
+        if data:
+            exporter(self.parameters.filepath,self.data)
+        elif lines:
+            exporter(self.parameters.filepath,self.lines)
+
+
+        
