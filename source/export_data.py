@@ -18,43 +18,42 @@ class DataExporter(ABC):
         pass 
 
     @abstractmethod
-    def exporter(path: Union[PosixPath, str],data : Union[DataFrame,Dict]) -> None:
+    def exporter(path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
         pass
 
 
+class ExportPatch(DataExporter):
 
-
-def _make_directory(path: Union[PosixPath, str],lines= False) -> str:
-    if type(path) == PosixPath:
-        parent_dir = path.parent
-    else:
-        pass
-    
-    if not lines:
+    def _make_directory(self,path: Union[PosixPath, str]) -> str:
+        if type(path) == PosixPath:
+            parent_dir = path.parent
+        else:
+            #TODO fill in for string
+            pass
+        
         outpath = str(parent_dir) + '/' + 'cleaned_data'
-    else:
-        outpath = str(parent_dir) + '/' + 'cleaned_lines'
-    
-    if not os.path.isdir(outpath):
-        os.mkdir(outpath)
 
-    return outpath
+        
+        if not os.path.isdir(outpath):
+            os.mkdir(outpath)
 
-def _make_outfile(path: Union[PosixPath, str]) -> str:
-    original_file = os.path.basename(path)
-    name,_= original_file.split('.')
-    
-    date_created = datetime.now().strftime("%Y %m, %d").replace(",","").replace(" ", "_")
+        return outpath
 
-    new_file = name+'_processedOn_'+date_created+'.csv'
     
-    return new_file
-    
-def exporter(path: Union[PosixPath, str],data : Union[DataFrame,Dict]) -> None:
+    def _make_outfile(self,path: Union[PosixPath, str]) -> str:
 
-    if type(data) == DataFrame:
-        outpath = _make_directory(path)
-        outfile = _make_outfile(path)
+        original_file = os.path.basename(path)
+        name,_= original_file.split('.')
+        
+        date_created = datetime.now().strftime("%Y %m, %d").replace(",","").replace(" ", "_")
+
+        new_file = name+'_processedOn_'+date_created+'.csv'
+        
+        return new_file
+
+    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
+        outpath = self._make_directory(path)
+        outfile = self._make_outfile(path)
         outpath = outpath+'/'+outfile
 
         if os.path.isfile(outpath):
@@ -75,14 +74,40 @@ def exporter(path: Union[PosixPath, str],data : Union[DataFrame,Dict]) -> None:
             print('###')
             pass
 
-    else:
-        for index, (key,value) in enumerate(data.items()):
-            outpath = _make_directory(path,lines=True)
-            outfile = _make_outfile(path)
+class ExportLines(DataExporter):
+
+    def _make_directory(self,path: Union[PosixPath, str]) -> str:
+        if type(path) == PosixPath:
+            parent_dir = path.parent
+        else:
+            #TODO fill in for string
+            pass
+        
+        outpath = str(parent_dir) + '/' + 'cleaned_lines'
+
+        
+        if not os.path.isdir(outpath):
+            os.mkdir(outpath)
+
+        return outpath
+
+    def _make_outfile(self,path: Union[PosixPath, str],key: str) -> str:
+
+        original_file = os.path.basename(path)
+        name,_= original_file.split('.')
+        
+        date_created = datetime.now().strftime("%Y %m, %d").replace(",","").replace(" ", "_")
+
+        new_file = name+'_'+str(key)+'_processedOn_'+date_created+'.csv'
+        
+        return new_file
+
+    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
+        for index, (key,value) in enumerate(lines.items()):
+            outpath = self._make_directory(path)
+            outfile = self._make_outfile(path,key)
 
             outpath = outpath+'/'+outfile
-            one,two = outpath.split('_p')
-            outpath = one+'_'+str(key).replace(' ','_')+'_p'+two
 
             if index ==0 and os.path.isfile(outpath):
                 Q = input('Do you want to overwrite all line files ? (y/n)')
@@ -90,7 +115,7 @@ def exporter(path: Union[PosixPath, str],data : Union[DataFrame,Dict]) -> None:
                 Q = 'y'
 
             if Q =='y':
-                data[key].to_csv(outpath, header=True, index=False)
+                lines[key].to_csv(outpath, header=True, index=False)
 
                 print('###')
                 print('data output to %s' % outpath)
