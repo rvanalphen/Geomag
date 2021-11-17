@@ -30,9 +30,14 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
 
 class App:
-    def __init__(self, parameters: GeoMag) -> None:
-        self.parameters = parameters
-        self.data: DataFrame = path_to_df(parameters.filepath)
+    def __init__(self, parameters: GeoMag = None,merged_patches: DataFrame = None) -> None:
+        if parameters:
+            self.parameters = parameters
+            self.data: DataFrame = path_to_df(parameters.filepath)
+        else:
+            self.parameters = None
+            self.data: DataFrame = merged_patches
+        
         self.lines: Dict = None
 
     def transform_coords(self) -> List:
@@ -73,10 +78,10 @@ class App:
         else:
             return EastWestCut()
 
-    def cut_data(self) -> None:
+    def cut_data(self,buffer: int = 5) -> None:
 
         cleaning_strategy = self._choose_strategey()
-        self.data = cleaning_strategy.cut_heading(self.data)
+        self.data = cleaning_strategy.cut_heading(self.data,buffer)
 
     def subtract_total_field(self, value: int = None) -> None:
 
@@ -89,11 +94,18 @@ class App:
             magcorrector.global_detrend(self.data, value)
 
     def _update_data(self) -> None:
-        idx =[]
-        for key in self.lines:
-            idx.extend(self.lines[key].index.values)
+        Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')
         
-        self.data = self.data[self.data.index.isin(idx)]
+        if Q == 'y':
+            idx =[]
+            for key in self.lines:
+                idx.extend(self.lines[key].index.values)
+        
+            self.data = self.data[self.data.index.isin(idx)]
+            print('Patch data was updated')
+        
+        else:
+            print('Patch data was not updated')
 
     def separate_lines(self, separation_strategy: DataSeparator) -> Dict:
         self.lines = separation_strategy.split(self.data)

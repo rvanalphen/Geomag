@@ -3,6 +3,8 @@ from pandas import DataFrame
 from typing import Union, Dict
 from pathlib import Path
 
+from source.app import App
+
 
 class DataPlotter:
 
@@ -15,12 +17,18 @@ class DataPlotter:
 
         return 'EW'
 
-    def simple_plot(self, path: Union[Path, str], data: Union[DataFrame, Dict]) -> None:
-        path = str(path).split('/')[-1]
+    def simple_plot(self,application: App,lines: bool = False) -> None:
+        
+        if not application.parameters:
+            path = 'Merged Files'
+        else:
+            path = application.parameters.filepath
+            path = str(path).split('/')[-1]
         
         fig, ax = plt.subplots(figsize=(10, 10))
 
-        if type(data) is DataFrame:
+        if not lines:
+            data = application.data 
             cols = data.columns
             if 'Easting' in cols:
                 ax.plot(data.Easting, data.Northing,
@@ -33,6 +41,7 @@ class DataPlotter:
             plt.show()
 
         else:
+            data = application.lines
             for key in data:
                 ax.plot(data[key].Easting,data[key].Northing,
                         linestyle='None', marker="o", ms=2)
@@ -42,50 +51,57 @@ class DataPlotter:
             plt.show()
 
 
-    def plot_mag_profile(self, path: Union[Path, str], data: Dict,
-                         key_name: str = None, direction: str = None) -> None:
+    def plot_mag_profile(self,application: App,key_name: str = None,direction: str = None) -> None:
 
-        path = str(path).split('/')[-1]
+        if not application.parameters:
+            path = 'Merged Files'
+        else:
+            path = application.parameters.filepath
+            path = str(path).split('/')[-1]
+
+        data = application.lines[key_name]
+
+        fig, ax = plt.subplots(figsize=(15, 5))
 
         if key_name:
-            data = data[key_name]
-
-        if type(data) is DataFrame:
-            fig, ax = plt.subplots(figsize=(15, 5))
             ax.set_title(path+': '+key_name)
-
-            if not direction:
-                direction = self._choose_plot(data)
-
-            if "NS" not in direction:
-                ax.plot(data.Easting, data.Mag_nT, marker="o",
-                        linestyle='None', markersize=3)
-
-                ax.set_xlabel("Easting")
-                ax.set_ylabel("Magnetic Signal (nT)")
-
-                plt.show()
-
-            else:
-                ax.plot(data.Northing, data.Mag_nT, marker="o",
-                        linestyle='None', markersize=3)
-
-                ax.set_xlabel("Northing")
-                ax.set_ylabel("Magnetic Signal (nT)")
-
-                ax.set_title(key_name)
-
-                plt.show()
         else:
-            for index, (key, value) in enumerate(data.items()):
-                if index == 0:
-                    direction = self._choose_plot(data[key])
+            ax.set_title(path+' lines')
+        
+        if not direction:
+            direction = self._choose_plot(data)
 
-                self.plot_mag_profile(path, data, key, direction)
+        if "NS" not in direction:
+            ax.plot(data.Easting, data.Mag_nT, marker="o",
+                    linestyle='None', markersize=3)
+
+            ax.set_xlabel("Easting")
+            ax.set_ylabel("Magnetic Signal (nT)")
+
+            plt.show()
+
+        else:
+            ax.plot(data.Northing, data.Mag_nT, marker="o",
+                    linestyle='None', markersize=3)
+
+            ax.set_xlabel("Northing")
+            ax.set_ylabel("Magnetic Signal (nT)")
+
+            ax.set_title(key_name)
+
+            plt.show()
 
 
-    def plot_offset_profile(self,path: Union[Path, str], data: Dict, offset=150):
-        path = str(path).split('/')[-1]
+    def plot_offset_profile(self,application: App, offset=150):
+    
+        data = application.lines
+
+        if not application.parameters:
+            path = 'Merged Files'
+        else:
+            path = application.parameters.filepath
+            path = str(path).split('/')[-1]
+
         start_offset = 0
 
         fig, ax = plt.subplots(figsize=(10, 10))
