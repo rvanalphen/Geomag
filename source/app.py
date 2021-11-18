@@ -34,11 +34,12 @@ class App:
         if parameters != None and merged_patches is None:
             self.parameters = parameters
             self.data: DataFrame = path_to_df(parameters.filepath)
+            self.lines: Dict = None
+
         else:
             self.parameters = parameters
             self.data: DataFrame = merged_patches
-        
-        self.lines: Dict = None
+            self.lines: Dict = None
 
     def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)
@@ -97,8 +98,8 @@ class App:
             magcorrector.global_detrend(self.data, value)
 
     def _update_data(self) -> None:
-        Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')
-        
+        # Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')
+        Q='y'
         if Q == 'y':
             idx =[]
             for key in self.lines:
@@ -115,8 +116,8 @@ class App:
         self._update_data()
 
     def export_data(self,export_strategy: DataExporter):
-        # override_name='All_NS'
-        export_strategy.exporter(self.parameters.filepath,self.data,self.lines)
+        override_name='All_NS_samespacing'
+        export_strategy.exporter(self.parameters.filepath,self.data,self.lines,override_name)
 
 
         

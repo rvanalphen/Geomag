@@ -1,10 +1,13 @@
 
 import timeit   
-from pathlib import Path
+from pathlib import Path, PosixPath
+from typing import Dict, Union
+
+from pandas.core.frame import DataFrame
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.seperate_data import DistanceSperator
+from source.seperate_data import DistanceSperator, HistSeperator
 from source.export_data import ExportPatch,ExportLines,ExportAll
 from source.cut_data import NorthSouthCut,EastWestCut
 import os
@@ -22,9 +25,8 @@ DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
 ELEVATION = '0'
 
 ####################### - Helper Functions - ######################
-# last two are closer spacing
-                #   and '20191018_210649.txt' not in filename\ 
-def files_to_dict(dirpath):
+ 
+def files_to_dict(dirpath: Union[PosixPath,str]) -> Dict:
     num = 0
     files_dict = {}
     for filename in os.listdir(dirpath):
@@ -34,9 +36,10 @@ def files_to_dict(dirpath):
             num += 1
             fullpath = Path(dirpath+filename)
             files_dict[str(num)] = fullpath
+
     return files_dict
 
-def merge_object_data(dictionary):
+def merge_object_data(dictionary: Dict) -> DataFrame:
     data_list =[]
     for key,value in dictionary.items():
         data_list.append(
@@ -61,11 +64,13 @@ def main():
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
 
-    plotter = DataPlotter()
-    plotter.simple_plot(app)       
-    
-    # # seperating each line into a dict under app.lines
-    # app.separate_lines(DistanceSperator())
+    # mag_sub_set =[]
+    # utm_north_sub_set = []
+    # for i in range(len(mag_set)):
+    #     if (utm_east[i] > 307891) & (utm_east[i]< 307925):
+    #         mag_sub_set.append(mag_set[i])
+    #         utm_north_sub_set.append(utm_north[i])
+
 
 
 if __name__ == "__main__":
@@ -74,15 +79,3 @@ if __name__ == "__main__":
     main()
     stop = timeit.default_timer()
     print('\n Data Processed in %f second(s)' % (stop - start))
-
-
-    # getting only the local field values  - value=48488
-    # app.subtract_total_field()
-
-    # exporting the changed data depending on strategy employed
-    # app.export_data(ExportAll())
-
-    # plotting individual lines
-
-    # plotting each magnetic profile with an offset
-    # plotter.plot_offset_profile(app)

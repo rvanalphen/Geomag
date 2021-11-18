@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from math import dist
 from typing import Dict
-from numpy import histogram
 from pandas.core.frame import DataFrame
-from pydantic.errors import LuhnValidationError
-
+from pandas import cut
+from math import sqrt
 def rename_dict(dictionary):
     i = 0
     new_dict={}
@@ -93,11 +92,14 @@ class DistanceSperator(DataSeparator):
         
         return rename_dict(line_dict)
 
+
 class HistSeperator(DataSeparator):
-    from numpy import histogram
     def _parameter_calculator(self, data: DataFrame) -> None:
-        print(histogram(data))
-        pass
+        #bins = 53
+        bins = round(sqrt(len(data)))
+        # arr,bns = cut(data['Easting'],bins)
+        print(cut(data['Easting'],bins))
+        # print(bns)
 
     def split(self, data: DataFrame, cutoff_dist=None, cutoff_length=None) -> Dict:
         self._parameter_calculator(data)
