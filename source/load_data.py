@@ -6,8 +6,8 @@ def _parse_file(filepath: string) -> Tuple:
     import csv
     with open(filepath, 'r') as tmp:
         sniffer = csv.Sniffer()
-        dialect = sniffer.sniff(tmp.read(1024))  #### detect delimiters
-        head = sniffer.has_header(tmp.read(1024))  #### detect header 
+        dialect = sniffer.sniff(tmp.read(3024))  #### detect delimiters
+        head = sniffer.has_header(tmp.read(3024))  #### detect header 
         tmp.seek(0)
         if not head:
             head = 'None'

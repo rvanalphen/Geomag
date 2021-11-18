@@ -31,11 +31,11 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
 class App:
     def __init__(self, parameters: GeoMag = None,merged_patches: DataFrame = None) -> None:
-        if parameters:
+        if parameters != None and merged_patches is None:
             self.parameters = parameters
             self.data: DataFrame = path_to_df(parameters.filepath)
         else:
-            self.parameters = None
+            self.parameters = parameters
             self.data: DataFrame = merged_patches
         
         self.lines: Dict = None
@@ -73,15 +73,18 @@ class App:
 
         if mode_heading < 44 or mode_heading > 316\
                 or (mode_heading > 136 and mode_heading < 224):
+            self.data['dir'] = 'NS'   
             return NorthSouthCut()
 
         else:
+            self.data['dir'] = 'EW'   
             return EastWestCut()
 
     def cut_data(self,buffer: int = 5) -> None:
 
         cleaning_strategy = self._choose_strategey()
         self.data = cleaning_strategy.cut_heading(self.data,buffer)
+
 
     def subtract_total_field(self, value: int = None) -> None:
 
@@ -112,6 +115,7 @@ class App:
         self._update_data()
 
     def export_data(self,export_strategy: DataExporter):
+        # override_name='All_NS'
         export_strategy.exporter(self.parameters.filepath,self.data,self.lines)
 
 

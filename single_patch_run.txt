@@ -1,0 +1,32 @@
+   # all_files = files_to_dict(DATA_DIR)
+
+    # object_dict={}
+    # for KEY,FILE in all_files.items():
+    
+        # print(FILE,'\n')
+        # # initializing and validating input parameters
+        # geomag = GeoMag(
+        #     filepath=FILE,
+        #     input_epsg=INEPSG,
+        #     output_epsg=OUTEPSG,
+        #     dates=DATES,
+        #     elevation=ELEVATION
+        # )
+
+    #     # create the application and plotting class
+    #     app = App(parameters = geomag)
+
+    #     # transforming lat long to utm
+    #     app.transform_coords()
+
+    #     # cleaning data based on input strategey
+    #     app.cut_data(buffer=5)
+
+    #     # putting each objects data into a list for merging 
+    #     if app.data.dir.values[0] =='NS':
+    #         object_dict[KEY] = app.data
+    
+    # merging each files cleaned data into one DataFrame
+    # merged_data = merge_object_data(object_dict)
+    # app = App(parameters = geomag, merged_patches = merged_data)
+

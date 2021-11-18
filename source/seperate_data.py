@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from math import dist
+from typing import Dict
+from numpy import histogram
 from pandas.core.frame import DataFrame
 from pydantic.errors import LuhnValidationError
 
@@ -29,8 +31,6 @@ class DataSeparator(ABC):
     def split(self, data: DataFrame, cutoff_dist=None, cutoff_length=None ):
         pass
 
-
-
 class DistanceSperator(DataSeparator):
 
     #! this version calculates distance between points
@@ -57,7 +57,7 @@ class DistanceSperator(DataSeparator):
 
             data["Dist"] = distances
 
-    def split(self, data: DataFrame, cutoff_length=99, cutoff_dist=None):
+    def split(self, data: DataFrame, cutoff_length=99, cutoff_dist=None) -> Dict:
         cols = data.columns
         if 'Dist' not in cols:
             self._parameter_calculator(data)
@@ -92,3 +92,13 @@ class DistanceSperator(DataSeparator):
             line_dict[key]) > cutoff_length}
         
         return rename_dict(line_dict)
+
+class HistSeperator(DataSeparator):
+    from numpy import histogram
+    def _parameter_calculator(self, data: DataFrame) -> None:
+        print(histogram(data))
+        pass
+
+    def split(self, data: DataFrame, cutoff_dist=None, cutoff_length=None) -> Dict:
+        self._parameter_calculator(data)
+        pass

@@ -14,11 +14,11 @@ class DataExporter(ABC):
         pass
 
     @abstractmethod
-    def _make_outfile(path: Union[PosixPath, str]) -> str:
+    def _make_outfile(path: Union[PosixPath, str],override_name: str = None) -> str:
         pass 
 
     @abstractmethod
-    def exporter(path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
+    def exporter(path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         pass
 
 
@@ -40,20 +40,23 @@ class ExportPatch(DataExporter):
         return outpath
 
     
-    def _make_outfile(self,path: Union[PosixPath, str]) -> str:
+    def _make_outfile(self,path: Union[PosixPath, str],override_name: str = None) -> str:
 
         original_file = os.path.basename(path)
         name,_= original_file.split('.')
         
         date_created = datetime.now().strftime("%Y %m, %d").replace(",","").replace(" ", "_")
 
-        new_file = name+'_processedOn_'+date_created+'.csv'
+        if override_name != None:
+            new_file = override_name+'_processedOn_'+date_created+'.csv'
+        else:
+            new_file = name+'_processedOn_'+date_created+'.csv'
         
         return new_file
 
-    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
+    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         outpath = self._make_directory(path)
-        outfile = self._make_outfile(path)
+        outfile = self._make_outfile(path,override_name)
         outpath = outpath+'/'+outfile
 
         if os.path.isfile(outpath):
@@ -102,7 +105,7 @@ class ExportLines(DataExporter):
         
         return new_file
 
-    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict) -> None:
+    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         for index, (key,value) in enumerate(lines.items()):
             outpath = self._make_directory(path)
             outfile = self._make_outfile(path,key)
@@ -135,6 +138,6 @@ class ExportAll(DataExporter):
     def _make_outfile(self,path: Union[PosixPath, str]) -> str:
         pass
 
-    def exporter(self,path: Union[PosixPath, str], data: DataFrame, lines: Dict) -> None:
-        ExportPatch().exporter(path,data,lines)
-        ExportLines().exporter(path,data,lines)
+    def exporter(self,path: Union[PosixPath, str], data: DataFrame, lines: Dict,override_name: str = None) -> None:
+        ExportPatch().exporter(path,data,lines,override_name)
+        ExportLines().exporter(path,data,lines,override_name)
