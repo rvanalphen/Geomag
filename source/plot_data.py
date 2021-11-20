@@ -18,7 +18,7 @@ class DataPlotter:
         return 'EW'
 
     def simple_plot(self,application: App,lines: bool = False) -> None:
-        
+
         if not application.parameters:
             path = 'Merged Files'
         else:

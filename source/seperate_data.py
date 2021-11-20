@@ -93,7 +93,7 @@ class DistanceSperator(DataSeparator):
         return rename_dict(line_dict)
 
 
-class HistSeperator(DataSeparator):
+class LineSeperator(DataSeparator):
     def _parameter_calculator(self, data: DataFrame) -> None:
         #bins = 53
         bins = round(sqrt(len(data)))

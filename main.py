@@ -2,17 +2,21 @@
 import timeit   
 from pathlib import Path, PosixPath
 from typing import Dict, Union
-
+from matplotlib import lines
 from pandas.core.frame import DataFrame
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.seperate_data import DistanceSperator, HistSeperator
+from source.seperate_data import DistanceSperator
 from source.export_data import ExportPatch,ExportLines,ExportAll
 from source.cut_data import NorthSouthCut,EastWestCut
 import os
 from pandas import merge
 from functools import reduce
+import matplotlib.pyplot as plt 
+from scipy.spatial.distance import cdist
+from numpy import linspace
+
 #TODO fix recursive folder creation
 ######################## - INPUTS - #############################
 
@@ -47,8 +51,33 @@ def merge_object_data(dictionary: Dict) -> DataFrame:
 
     return reduce(lambda left, right: merge(left, right, how='outer'), data_list)
 
-######################### - Main - ###############################
 
+def closest_point(point:list[Union[int,float]], points: list[Union[int,float]]) -> tuple:
+    """ Find closest point from a list of points. """
+    return points[cdist([point], points).argmin()]
+
+def get_line(data: DataFrame,start: list[Union[int,float]], end: list[Union[int,float]]) -> DataFrame:
+    data = data[['Easting','Northing','Mag_nT']]
+    df1 = DataFrame()
+    df1['point'] = [(x, y) for x,y in zip(data['Easting'],data['Northing'])]
+    
+    x = linspace(start[0],end[0],endpoint=True,num = 100)
+    y = linspace(start[1],end[1],endpoint=True,num = 100)
+
+    df2 = DataFrame()
+    df2['point'] = [(x, y) for x,y in zip(x, y)]
+    
+    closest = DataFrame()
+    closest['Easting'],closest['Northing'] = list(zip(*[closest_point(x, list(df1['point'])) for x in df2['point']]))
+    closest['Mag_nT'] = data['Mag_nT']
+
+    return closest
+
+######################### - Main - ###############################
+# start = [536126.5,4070411]
+# end = [536164,4068755]
+# start = [534641,4070410]
+# end = [534678,4068732]
 def main():
 
     print(FILE,'\n')
@@ -63,14 +92,22 @@ def main():
 
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
+    plot = DataPlotter()
 
-    # mag_sub_set =[]
-    # utm_north_sub_set = []
-    # for i in range(len(mag_set)):
-    #     if (utm_east[i] > 307891) & (utm_east[i]< 307925):
-    #         mag_sub_set.append(mag_set[i])
-    #         utm_north_sub_set.append(utm_north[i])
 
+
+
+    
+    get_line(app.data,start,end)
+
+    # fig, ax = plt.subplots(figsize=(10, 10))
+    # ax.scatter(x=start[0],y=start[1])
+    # ax.scatter(x=end[0],y=end[1])
+    # for i,_ in enumerate(closest):
+    #     ax.scatter(closest[i][0],closest[i][1],linestyle='None', marker="o", s=10)
+    # plt.show()
+
+    # plot.simple_plot(app)
 
 
 if __name__ == "__main__":
