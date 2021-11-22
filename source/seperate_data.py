@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from math import dist
 from typing import Dict
 from pandas.core.frame import DataFrame
-from pandas import cut
-from math import sqrt
+
+
 def rename_dict(dictionary):
     i = 0
     new_dict={}
@@ -27,7 +27,7 @@ class DataSeparator(ABC):
         pass
     
     @abstractmethod
-    def split(self, data: DataFrame, cutoff_dist=None, cutoff_length=None ):
+    def split(self, data: DataFrame):
         pass
 
 class DistanceSperator(DataSeparator):
@@ -91,16 +91,3 @@ class DistanceSperator(DataSeparator):
             line_dict[key]) > cutoff_length}
         
         return rename_dict(line_dict)
-
-
-class LineSeperator(DataSeparator):
-    def _parameter_calculator(self, data: DataFrame) -> None:
-        #bins = 53
-        bins = round(sqrt(len(data)))
-        # arr,bns = cut(data['Easting'],bins)
-        print(cut(data['Easting'],bins))
-        # print(bns)
-
-    def split(self, data: DataFrame, cutoff_dist=None, cutoff_length=None) -> Dict:
-        self._parameter_calculator(data)
-        pass
