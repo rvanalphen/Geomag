@@ -30,11 +30,29 @@ OUTEPSG = '32611'
 DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
 ELEVATION = '0'
 
+def closest_point(point:list[Union[int,float]], points: list[Union[int,float]]) -> tuple:
+    """ Find closest point from a list of points. """
+    return points[cdist([point], points).argmin()]
+
+def get_line(data: DataFrame,start: list[Union[int,float]], end: list[Union[int,float]]) -> DataFrame:
+    data = data[['Easting','Northing','Mag_nT']]
+    df1 = DataFrame()
+    df1['point'] = [(x, y) for x,y in zip(data['Easting'],data['Northing'])]
+    
+    x = linspace(start[0],end[0],endpoint=True,num = 500)
+    y = linspace(start[1],end[1],endpoint=True,num = 500)
+
+    df2 = DataFrame()
+    df2['point'] = [(x, y) for x,y in zip(x, y)]
+    
+    closest = DataFrame()
+    closest['Easting'],closest['Northing'] = list(zip(*[closest_point(x, list(df1['point'])) for x in df2['point']]))
+    return closest
 ######################### - Main - ###############################
 # start = [536126.5,4070411]
 # end = [536164,4068755]
-# start = [534641,4070410]
-# end = [534678,4068732]
+# start = [534678,4068732]
+# end = [534641,4070410]
 def main():
 
     print(FILE,'\n')
@@ -51,65 +69,59 @@ def main():
     app = App(parameters = geomag)
     plot = DataPlotter()
 
+    l5 = pandas.read_csv('./test.in',sep=' ',header=0)
+    
+    # start = [l5.Easting.max(),l5.Northing.min()]
+    # end = [l5.Easting.min(),l5.Northing.max()]
 
-    print('Starting cropping lines')
-    #bb = bottom bound, tb = top bound, the bounds between a single line
-    lb =-116.6140
-    rb = -116.6138
+    start = [534678,4068732]
+    end = [534641,4070410]
 
-    # the incriment I want to shift the bounds by 
+    import geopandas as gpd
+    import shapely.geometry
 
-    ic = 0.0004
-
-    # the number I dont want my bounds to go pass 
-    limit = -116.595
-
-    #creating a list for the bb and tb to go into 
-    lb_list = []
-    rb_list = []
-
-
-    #the two while loops that incriments my two bounds and then puts them into a list  
-    print('left')
-    while lb< 0:
-    #   print (lb)
-        lb= lb+ ic
-        lb_list.append(lb)
-        if lb> limit:
-            break
-    print ('Done')
-
-
-    print('right')
-    while rb< 0:
-    #  print (rb)
-        rb= rb+ ic
-        rb_list.append(rb)
-        if rb> limit:
-            break
-    print ('Done')
-
-    # cutting each line and assiging it a dataframe 
-    line_1 = app.data[(app.data.Long >  -1116.6140) & (app.data.Long <  -116.6138)]
-    line_2 = app.data[(app.data.Long >  lb_list[0]) & (app.data.Long <  rb_list[0])]
-    line_3 = app.data[(app.data.Long >  lb_list[1]) & (app.data.Long <  rb_list[1])]
-    line_4 = app.data[(app.data.Long >  lb_list[2]) & (app.data.Long <  rb_list[2])]
-    line_5 = app.data[(app.data.Long >  lb_list[3]) & (app.data.Long <  rb_list[3])]
-
-    l5 = pandas.read_csv('./Line_5_det.in',sep=' ',names=['e','n','m'])
-    print(l5)
+    dfp = gpd.GeoDataFrame(
+        app.data,
+        geometry=app.data.loc[:,["Easting","Northing"]].apply(shapely.geometry.Point, axis=1),
+        crs="EPSG:32611",
+    )
+    
+    line = shapely.geometry.LineString(
+        [start,end]
+    )
+    # add a buffer to LineString (hence becomes a polygon)
+    DISTANCE = 10 #m
+    line = (
+        gpd.GeoSeries([line], crs="EPSG:32611").buffer(DISTANCE)
+    )
+    
+    df_near = gpd.GeoDataFrame(geometry=line).sjoin(dfp)
+    df = df_near.iloc[:,2:]
+    print(df)
 
 
 
     fig, ax = plt.subplots(figsize=(10, 10))
     
-    # ax.plot(app.data.Easting,app.data.Northing,'o')
+    ax.plot(app.data.Easting,app.data.Northing,'o',ms=10)
+    # ax.plot(l5.Easting,l5.Northing,'o',color='black',ms=10)
+    ax.plot(df.Easting,df.Northing,'o',color='black',ms=5)
+    ax.plot([start[0],end[0]],[start[1],end[1]])
 
-    ax.plot(l5.n, l5.m,'o',color='black')
-
-    ax.plot(line_5.Northing, line_5.Mag_nT,'o',color='red')
-    
     plt.show()
+
+
+
+
+
+    # # cutting each line and assiging it a dataframe 
+    # line_1 = app.data[(app.data.Long >  -1116.6140) & (app.data.Long <  -116.6138)]
+    # line_2 = app.data[(app.data.Long >  lb_list[0]) & (app.data.Long <  rb_list[0])]
+    # line_3 = app.data[(app.data.Long >  lb_list[1]) & (app.data.Long <  rb_list[1])]
+    # line_4 = app.data[(app.data.Long >  lb_list[2]) & (app.data.Long <  rb_list[2])]
+    # line_5 = app.data[(app.data.Long >  lb_list[3]) & (app.data.Long <  rb_list[3])]
+
+
 
 
 

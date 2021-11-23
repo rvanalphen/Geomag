@@ -9,11 +9,11 @@ class MagCorrector:
     def _parse_dates(self, dates: List[str]) -> Tuple:
 
         dates = sorted(dates, key=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
-
+        
         startyear,startmonth,startday = dates[0].split('-')
         endyear,endmonth,endday = dates[-1].split('-')
 
-        return (startyear,startmonth,startday),(startyear,startmonth,startday)
+        return (startyear,startmonth,startday),(endyear,endmonth,endday)
 
 
     def _get_value(self, data: DataFrame, dates: List[str], elevation: str) -> Union[int,float]:
@@ -27,6 +27,7 @@ class MagCorrector:
         'coordinateSystem=D&lat1=%s&lon1=%s&elevation=%s&startYear=%s&startMonth=%s&startDay=%s&endYear=%s&endMonth=%s'
         '&endDay=%s&resultFormat=json') % (
             lat, lon, elevation, start[0],start[1],start[2],end[0],end[1],end[2])
+
         # print(url)
         r = requests.get(url)
         if r.status_code != 200:

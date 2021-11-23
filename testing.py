@@ -79,16 +79,12 @@ def main():
         # putting each objects data into a list for merging 
         if app.data.dir.values[0] =='NS':
             object_dict[KEY] = app
-    
-    print(object_dict)
 
 
-        
 
-# for i in range(len(mag_set)):
-#     if (utm_east[i] > 307891) & (utm_east[i]< 307925):
-#         mag_sub_set.append(mag_set[i])
-#         utm_north_sub_set.append(utm_north[i])
+
+
+
 
 if __name__ == "__main__":
     start = timeit.default_timer()
