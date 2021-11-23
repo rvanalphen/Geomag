@@ -8,7 +8,7 @@ from pandas.core.frame import DataFrame
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.seperate_data import DistanceSperator
+from source.seperate_data import DistanceSperator,SingleSeparator
 from source.export_data import ExportPatch,ExportLines,ExportAll
 from source.cut_data import NorthSouthCut,EastWestCut
 from source.helper_functions import merge_object_data,closest_point,get_line,files_to_dict
@@ -53,6 +53,8 @@ def get_line(data: DataFrame,start: list[Union[int,float]], end: list[Union[int,
 # end = [536164,4068755]
 # start = [534678,4068732]
 # end = [534641,4070410]
+# l5 = pandas.read_csv('./test.in',sep=' ',header=0)
+
 def main():
 
     print(FILE,'\n')
@@ -68,61 +70,26 @@ def main():
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
     plot = DataPlotter()
-
-    l5 = pandas.read_csv('./test.in',sep=' ',header=0)
     
-    # start = [l5.Easting.max(),l5.Northing.min()]
-    # end = [l5.Easting.min(),l5.Northing.max()]
+    line_params = {
+        'start': [534605.4451, 4068731.615],
+        'end' : [534560.0319, 4070426.924],
+        'buffer' : 10
+    }
 
-    start = [534678,4068732]
-    end = [534641,4070410]
+    app.separate_lines(SingleSeparator(),line_params)
 
-    import geopandas as gpd
-    import shapely.geometry
+    print(app.lines)
 
-    dfp = gpd.GeoDataFrame(
-        app.data,
-        geometry=app.data.loc[:,["Easting","Northing"]].apply(shapely.geometry.Point, axis=1),
-        crs="EPSG:32611",
-    )
+
+    # fig, ax = plt.subplots(figsize=(10, 10))
     
-    line = shapely.geometry.LineString(
-        [start,end]
-    )
-    # add a buffer to LineString (hence becomes a polygon)
-    DISTANCE = 10 #m
-    line = (
-        gpd.GeoSeries([line], crs="EPSG:32611").buffer(DISTANCE)
-    )
-    
-    df_near = gpd.GeoDataFrame(geometry=line).sjoin(dfp)
-    df = df_near.iloc[:,2:]
-    print(df)
+    # ax.plot(app.data.Easting,app.data.Northing,'o',ms=10)
+    # ax.plot(app.lines.Easting,app.lines.Northing,'o',color='black',ms=5)
+    # ax.plot([line_params['start'][0],line_params['end'][0]],
+    #     [line_params['start'][1],line_params['end'][1]])
 
-
-
-    fig, ax = plt.subplots(figsize=(10, 10))
-    
-    ax.plot(app.data.Easting,app.data.Northing,'o',ms=10)
-    # ax.plot(l5.Easting,l5.Northing,'o',color='black',ms=10)
-    ax.plot(df.Easting,df.Northing,'o',color='black',ms=5)
-    ax.plot([start[0],end[0]],[start[1],end[1]])
-
-    plt.show()
-
-
-
-
-
-    # # cutting each line and assiging it a dataframe 
-    # line_1 = app.data[(app.data.Long >  -1116.6140) & (app.data.Long <  -116.6138)]
-    # line_2 = app.data[(app.data.Long >  lb_list[0]) & (app.data.Long <  rb_list[0])]
-    # line_3 = app.data[(app.data.Long >  lb_list[1]) & (app.data.Long <  rb_list[1])]
-    # line_4 = app.data[(app.data.Long >  lb_list[2]) & (app.data.Long <  rb_list[2])]
-    # line_5 = app.data[(app.data.Long >  lb_list[3]) & (app.data.Long <  rb_list[3])]
-
-
-
+    # plt.show()
 
 
 if __name__ == "__main__":

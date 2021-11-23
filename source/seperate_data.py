@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from math import dist
-from typing import Dict
+from typing import Dict, Union
 from pandas.core.frame import DataFrame
-
+from shapely.geometry import Point,Polygon,LineString
+from geopandas import GeoSeries,GeoDataFrame
 
 def rename_dict(dictionary):
     i = 0
@@ -91,3 +92,29 @@ class DistanceSperator(DataSeparator):
             line_dict[key]) > cutoff_length}
         
         return rename_dict(line_dict)
+
+
+class SingleSeparator(DataSeparator):
+    
+    def _parameter_calculator(self, start: list[Union[int,float]],end:list[Union[int,float]],buffer: int = 10) -> Polygon:
+        
+        line = LineString([start,end])
+        DISTANCE = 10 #m
+        
+        return (GeoSeries([line], crs="EPSG:32611").buffer(DISTANCE))
+
+    def split(self, data: DataFrame, line_params: Dict) -> DataFrame:
+        
+        
+        ideal_line = self._parameter_calculator(line_params['start'],line_params['end'],line_params['buffer'])
+
+        dfp = GeoDataFrame(data,geometry=data.loc[:,["Easting","Northing"]].apply(Point, axis=1),
+            crs="EPSG:32611",
+            )
+        
+        actual_line = GeoDataFrame(geometry=ideal_line).sjoin(dfp)
+        
+        return actual_line.iloc[:,2:]
+
+        
+        

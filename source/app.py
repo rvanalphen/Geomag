@@ -111,9 +111,12 @@ class App:
         else:
             print('Patch data was not updated')
 
-    def separate_lines(self, separation_strategy: DataSeparator) -> Dict:
-        self.lines = separation_strategy.split(self.data)
-        self._update_data()
+    def separate_lines(self, separation_strategy: DataSeparator,line_params: Dict = None) -> Dict:
+        if not line_params:
+            self.lines = separation_strategy.split(self.data)
+            self._update_data()
+        else:
+            self.lines = separation_strategy.split(self.data,line_params)
 
     def export_data(self,export_strategy: DataExporter):
         override_name='All_NS_samespacing'
