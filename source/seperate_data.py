@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from math import dist
-from typing import Dict, Union
+from typing import Dict, Tuple, Union,List
 from pandas.core.frame import DataFrame
 from shapely.geometry import Point,Polygon,LineString
 from geopandas import GeoSeries,GeoDataFrame
@@ -24,7 +24,7 @@ def rename_dict(dictionary):
 class DataSeparator(ABC):
     
     @abstractmethod
-    def _parameter_calculator(self,data: DataFrame) -> None:
+    def _parameter_calculator(self) -> None:
         pass
     
     @abstractmethod
@@ -96,25 +96,30 @@ class DistanceSperator(DataSeparator):
 
 class SingleSeparator(DataSeparator):
     
-    def _parameter_calculator(self, start: list[Union[int,float]],end:list[Union[int,float]],buffer: int = 10) -> Polygon:
-        
-        line = LineString([start,end])
-        DISTANCE = 10 #m
-        
-        return (GeoSeries([line], crs="EPSG:32611").buffer(DISTANCE))
+    def _parameter_calculator(self,line_params: Dict,buffer: int) -> Polygon:
+            lines=[]
+            for i, (key,value) in enumerate(line_params.items()):
+                start = line_params[key][0]
+                end = line_params[key][1]
+                    
+                line = LineString([start,end])
+                line = (GeoSeries([line]).buffer(buffer)
+    )
+                lines.append(line)
 
-    def split(self, data: DataFrame, line_params: Dict) -> DataFrame:
-        
-        
-        ideal_line = self._parameter_calculator(line_params['start'],line_params['end'],line_params['buffer'])
+            return lines
 
-        dfp = GeoDataFrame(data,geometry=data.loc[:,["Easting","Northing"]].apply(Point, axis=1),
-            crs="EPSG:32611",
-            )
+    def split(self, data: DataFrame, line_params: Dict, buffer: int) -> DataFrame:
         
-        actual_line = GeoDataFrame(geometry=ideal_line).sjoin(dfp)
+        ideal_lines = self._parameter_calculator(line_params,buffer)
+        dfp = GeoDataFrame(data,geometry=data.loc[:,["Easting","Northing"]].apply(Point, axis=1))
         
-        return actual_line.iloc[:,2:]
+        line_dict = {}
+        for i,line in enumerate(ideal_lines):
+            name = 'line '+str(i+1)
 
-        
-        
+            actual_line = GeoDataFrame(geometry=line).sjoin(dfp)
+            
+            line_dict[name] =  actual_line.iloc[:,2:]
+            
+        return line_dict         

@@ -41,3 +41,7 @@ class MagCorrector:
             value = self._get_value(data, dates, elevation)
 
         data.Mag_nT -= value
+
+
+    def minus_mean(self,data: DataFrame):
+        data['Mag_nT'] -=  data['Mag_nT'].mean()

@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 from pandas.core.frame import DataFrame
 from source.cut_data import CuttingStrategey, NorthSouthCut, EastWestCut
 from source.geomag import GeoMag
@@ -34,12 +34,12 @@ class App:
         if parameters != None and merged_patches is None:
             self.parameters = parameters
             self.data: DataFrame = path_to_df(parameters.filepath)
-            self.lines: Dict = None
+            self.lines: Union[Dict,List] = None
 
         else:
             self.parameters = parameters
             self.data: DataFrame = merged_patches
-            self.lines: Dict = None
+            self.lines: Union[Dict,List] = None
 
     def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)
@@ -89,13 +89,14 @@ class App:
 
     def subtract_total_field(self, value: int = None) -> None:
 
-        magcorrector = MagCorrector()
-
         if not value:
-            magcorrector.global_detrend(
+            MagCorrector().global_detrend(
                 self.data, dates=self.parameters.dates, elevation=self.parameters.elevation)
         else:
-            magcorrector.global_detrend(self.data, value)
+            MagCorrector().global_detrend(self.data, value)
+
+    def subtract_mean(self):
+        MagCorrector().minus_mean(self.data)
 
     def _update_data(self) -> None:
         # Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')
@@ -111,12 +112,12 @@ class App:
         else:
             print('Patch data was not updated')
 
-    def separate_lines(self, separation_strategy: DataSeparator,line_params: Dict = None) -> Dict:
+    def separate_lines(self, separation_strategy: DataSeparator,line_params: Dict = None, buffer: int = 10) -> Dict:
         if not line_params:
             self.lines = separation_strategy.split(self.data)
             self._update_data()
         else:
-            self.lines = separation_strategy.split(self.data,line_params)
+            self.lines = separation_strategy.split(self.data,line_params,buffer)
 
     def export_data(self,export_strategy: DataExporter):
         override_name='All_NS_samespacing'

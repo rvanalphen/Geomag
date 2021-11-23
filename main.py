@@ -69,27 +69,23 @@ def main():
 
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
-    plot = DataPlotter()
+    app.subtract_mean()
+
+    # creating new instance of data plotter classs
+    plotter = DataPlotter()
     
+    # setting up start and endpoints for line extraction 
     line_params = {
-        'start': [534605.4451, 4068731.615],
-        'end' : [534560.0319, 4070426.924],
-        'buffer' : 10
+        # Line name : [(start coordinates), (end coordinates)]
+        'line 1': [(534605.4451,4068731.615),(534560.0319,4070426.924)],
+        'line 2' : [(534678,4068732),(534641,4070410)],
     }
 
+    # separating out specific single lines as set in line_params
     app.separate_lines(SingleSeparator(),line_params)
 
-    print(app.lines)
 
 
-    # fig, ax = plt.subplots(figsize=(10, 10))
-    
-    # ax.plot(app.data.Easting,app.data.Northing,'o',ms=10)
-    # ax.plot(app.lines.Easting,app.lines.Northing,'o',color='black',ms=5)
-    # ax.plot([line_params['start'][0],line_params['end'][0]],
-    #     [line_params['start'][1],line_params['end'][1]])
-
-    # plt.show()
 
 
 if __name__ == "__main__":

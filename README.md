@@ -21,11 +21,13 @@ Python class for processing, visualizing and manipulating geomagnetic survey dat
 
     - DONE: outfile for whole file,each line, all in ns,all in ew
 
+    - DONE: remove mean from data
+
     - integrate maping with cartopy
     
-    - use z of drone location to only use points within a tolerance of expected flight height 
+    - use z of location to only use points within a tolerance of expected flight height 
     
-    - integrate wavlet code rocco has been using
+    - integrate wavlet leveling
 
     - remove linear trends from line
     
