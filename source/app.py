@@ -8,6 +8,7 @@ from pyproj import Transformer, CRS
 from math import atan2, pi
 from source.seperate_data import DataSeparator
 from source.export_data import DataExporter
+from source.correct_data import MagDetrender
 
 def _direction_lookup(destination_x: float, origin_x: float,
                       destination_y: float, origin_y: float) -> float:
@@ -97,6 +98,13 @@ class App:
 
     def subtract_mean(self):
         MagCorrector().minus_mean(self.data)
+
+    def subtract_line(self,detrend_strategy: MagDetrender, key_name: str = None):
+        if not key_name:
+            for key in self.lines.keys():
+                self.lines[key] = detrend_strategy.detrend(self.lines[key])
+        else:
+            self.lines[key_name] = detrend_strategy.detrend(self.lines[key_name])
 
     def _update_data(self) -> None:
         # Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')

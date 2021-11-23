@@ -120,6 +120,6 @@ class SingleSeparator(DataSeparator):
 
             actual_line = GeoDataFrame(geometry=line).sjoin(dfp)
             
-            line_dict[name] =  actual_line.iloc[:,2:]
+            line_dict[name] =  actual_line.iloc[:,2:].reset_index(drop=True)
             
         return line_dict         

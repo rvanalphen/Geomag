@@ -1,7 +1,9 @@
+from abc import ABC, abstractmethod
 from pandas import DataFrame
-from numpy import mean
+from numpy import mean,array
+from pandas.core.series import Series
 import requests
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 import datetime
 
 class MagCorrector:
@@ -44,4 +46,82 @@ class MagCorrector:
 
 
     def minus_mean(self,data: DataFrame):
-        data['Mag_nT'] -=  data['Mag_nT'].mean()
+        data.Mag_nT -=  data['Mag_nT'].mean()
+
+class MagDetrender(ABC):
+
+    @abstractmethod
+    def _make_detrend_line(self):
+        pass
+
+    @abstractmethod
+    def detrend(self):
+        pass
+
+class NorthSouthDetrend(MagDetrender):
+
+    def _make_detrend_line(self,data: DataFrame):
+        X1, Y1 = data.Northing.min(), data.Mag_nT.iloc[0]
+        X2, Y2 = data.Northing.max(), data.Mag_nT.iloc[-1]
+        dy = (Y2-Y1)
+        dx = (X2-X1)
+        m = (dy/dx)
+        b = Y1 - (m*X1)
+
+        correction_line = []
+        for i,_ in enumerate(data.index):
+            mx = data.Northing.values[i] *m
+            y = mx +b 
+            correction_line.append(y)
+
+        return correction_line
+
+    def detrend(self, data: DataFrame):
+
+        data = data.sort_values(by=['Northing'], ascending=True).reset_index(drop=True)
+        
+        correction_line = self._make_detrend_line(data)
+        
+        detrend_mag =[]
+        for i,_ in enumerate(data.index):
+            detrend_mag.append(
+                data.Mag_nT.values[i]-correction_line[i]
+            )
+
+        data['Mag_nT'] = detrend_mag
+
+        return data
+
+class EastWestDetrend(MagDetrender):
+
+    def _make_detrend_line(self,data: DataFrame):
+        X1, Y1 = data.Easting.min(),data.Mag_detrend.iloc[0]
+        X2, Y2 = data.Easting.max(),data.Mag_detrend.iloc[-1]
+        dy = (Y2-Y1)
+        dx = (X2-X1)
+        m = (dy/dx)
+        b = Y1 - (m*X1)
+
+        correction_line = []
+        for i,_ in enumerate(data.index):
+            mx = data.Northing.values[i] *m
+            y = mx +b 
+            correction_line.append(y)
+
+        return correction_line
+
+    def detrend(self, data: DataFrame):
+
+        data = data.sort_values(by=['Easting'], ascending=True).reset_index(drop=True)
+        
+        correction_line = self._make_detrend_line(data)
+        
+        detrend_mag =[]
+        for i,_ in enumerate(data.index):
+            detrend_mag.append(
+                data.Mag_nT.values[i]-correction_line[i]
+            )
+
+        data['Mag_nT'] = detrend_mag
+
+        return data

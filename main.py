@@ -1,53 +1,23 @@
 
 import timeit   
-from pathlib import Path, PosixPath
-from typing import Dict, Union
-from matplotlib import lines
-import pandas
-from pandas.core.frame import DataFrame
+from pathlib import Path
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.seperate_data import DistanceSperator,SingleSeparator
-from source.export_data import ExportPatch,ExportLines,ExportAll
-from source.cut_data import NorthSouthCut,EastWestCut
-from source.helper_functions import merge_object_data,closest_point,get_line,files_to_dict
-import os
-from pandas import merge
-from functools import reduce
-import matplotlib.pyplot as plt 
-from scipy.spatial.distance import cdist
-from numpy import linspace
+from source.separate_data import SingleSeparator
+from source.correct_data import NorthSouthDetrend
 
 #TODO fix recursive folder creation
 ######################## - INPUTS - #############################
 
 DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data'
-FILE = Path(f'{DATA_DIR}/All_NS_samespacing_processedOn_2021_11_17.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17.csv')# north - south lines
 # FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
 ELEVATION = '0'
 
-def closest_point(point:list[Union[int,float]], points: list[Union[int,float]]) -> tuple:
-    """ Find closest point from a list of points. """
-    return points[cdist([point], points).argmin()]
-
-def get_line(data: DataFrame,start: list[Union[int,float]], end: list[Union[int,float]]) -> DataFrame:
-    data = data[['Easting','Northing','Mag_nT']]
-    df1 = DataFrame()
-    df1['point'] = [(x, y) for x,y in zip(data['Easting'],data['Northing'])]
-    
-    x = linspace(start[0],end[0],endpoint=True,num = 500)
-    y = linspace(start[1],end[1],endpoint=True,num = 500)
-
-    df2 = DataFrame()
-    df2['point'] = [(x, y) for x,y in zip(x, y)]
-    
-    closest = DataFrame()
-    closest['Easting'],closest['Northing'] = list(zip(*[closest_point(x, list(df1['point'])) for x in df2['point']]))
-    return closest
 ######################### - Main - ###############################
 # start = [536126.5,4070411]
 # end = [536164,4068755]
@@ -83,6 +53,13 @@ def main():
 
     # separating out specific single lines as set in line_params
     app.separate_lines(SingleSeparator(),line_params)
+
+    # detrending a line from all lines so it is all about 0
+    app.subtract_line(NorthSouthDetrend())
+
+    #plotting detrended lines
+    for key in app.lines.keys():
+        plotter.plot_mag_profile(app,key_name=key)
 
 
 
