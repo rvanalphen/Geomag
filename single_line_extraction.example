@@ -1,0 +1,33 @@
+    def main():
+
+    print(FILE,'\n')
+    # initializing and validating input parameters
+    geomag = GeoMag(
+        filepath=FILE,
+        input_epsg=INEPSG,
+        output_epsg=OUTEPSG,
+        dates=DATES,
+        elevation=ELEVATION
+    )
+
+    # creating new App instance with all cleaned data
+    app = App(parameters = geomag)
+
+    app.subtract_mean()
+
+    # setting up start and endpoints for line extraction 
+    line_params = {
+        # Line name : [(start coordinates), (end coordinates)]
+        'line 1': [(534605.4451,4068731.615),(534560.0319,4070426.924)],
+        'line 2' : [(534678,4068732),(534641,4070410)],
+    
+    # separating out specific single lines as set in line_params
+    app.separate_lines(SingleSeparator(),line_params
+
+    # detrending a line from all lines so it is all about 0
+    key_name='line 1'
+    app.subtract_line(NorthSouthDetrend(),key_name
+    
+    # creating new instance of data plotter class
+    plotter = DataPlotter()
+    plotter.plot_mag_profile(app,key_name)

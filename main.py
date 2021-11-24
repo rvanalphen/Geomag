@@ -1,17 +1,19 @@
 
 import timeit   
 from pathlib import Path
+from source.export_data import ExportLines
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
 from source.separate_data import SingleSeparator
 from source.correct_data import NorthSouthDetrend
+from source.model_data import PloufModel
 
 #TODO fix recursive folder creation
 ######################## - INPUTS - #############################
 
-DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data'
-FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17.csv')# north - south lines
+DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data/cleaned_lines/'
+FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17_line 1_processedOn_2021_11_23.csv')# north - south lines
 # FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
 INEPSG = '4326'
 OUTEPSG = '32611'
@@ -31,35 +33,55 @@ def main():
     # initializing and validating input parameters
     geomag = GeoMag(
         filepath=FILE,
-        input_epsg=INEPSG,
-        output_epsg=OUTEPSG,
-        dates=DATES,
-        elevation=ELEVATION
     )
 
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
-    app.subtract_mean()
+    app.data_is_line()
 
-    # creating new instance of data plotter classs
-    plotter = DataPlotter()
     
-    # setting up start and endpoints for line extraction 
-    line_params = {
-        # Line name : [(start coordinates), (end coordinates)]
-        'line 1': [(534605.4451,4068731.615),(534560.0319,4070426.924)],
-        'line 2' : [(534678,4068732),(534641,4070410)],
-    }
+    # DataPlotter().plot_mag_profile(app,'line 1')
 
-    # separating out specific single lines as set in line_params
-    app.separate_lines(SingleSeparator(),line_params)
 
-    # detrending a line from all lines so it is all about 0
-    app.subtract_line(NorthSouthDetrend())
+    plouf = PloufModel(
+        line = app.data,
+        shapes= './test.in',
+        top_bound= [45],
+        bottom_bound= 54,
+        inclination= -67,
+        declination= 177,
+        intensity= 1
+    )
 
-    #plotting detrended lines
-    for key in app.lines.keys():
-        plotter.plot_mag_profile(app,key_name=key)
+    plouf.Parameters
+
+
+
+
+
+
+
+    # app.subtract_mean()
+
+    # # setting up start and endpoints for line extraction 
+    # line_params = {
+    #     # Line name : [(start coordinates), (end coordinates)]
+    #     'line 1': [(534605.4451,4068731.615),(534560.0319,4070426.924)],
+    #     'line 2' : [(534678,4068732),(534641,4070410)],
+    # }
+
+    # # separating out specific single lines as set in line_params
+    # app.separate_lines(SingleSeparator(),line_params)
+
+    # # detrending a line from all lines so it is all about 0
+    # key_name='line 1'
+    # app.subtract_line(NorthSouthDetrend(),key_name)
+
+    # # creating new instance of data plotter class
+    # plotter = DataPlotter()
+    # plotter.plot_mag_profile(app,key_name)
+
+
 
 
 

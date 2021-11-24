@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict, List
 from pandas.core.frame import DataFrame
 from source.cut_data import CuttingStrategey, NorthSouthCut, EastWestCut
 from source.geomag import GeoMag
@@ -6,9 +6,10 @@ from source.load_data import path_to_df
 from source.correct_data import MagCorrector
 from pyproj import Transformer, CRS
 from math import atan2, pi
-from source.seperate_data import DataSeparator
+from source.separate_data import DataSeparator
 from source.export_data import DataExporter
 from source.correct_data import MagDetrender
+from pprint import pprint
 
 def _direction_lookup(destination_x: float, origin_x: float,
                       destination_y: float, origin_y: float) -> float:
@@ -29,18 +30,41 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
     return degrees_final
 
-
 class App:
     def __init__(self, parameters: GeoMag = None,merged_patches: DataFrame = None) -> None:
         if parameters != None and merged_patches is None:
             self.parameters = parameters
             self.data: DataFrame = path_to_df(parameters.filepath)
-            self.lines: Union[Dict,List] = None
+            self.lines: Dict = None
 
         else:
             self.parameters = parameters
             self.data: DataFrame = merged_patches
-            self.lines: Union[Dict,List] = None
+            self.lines: Dict = None
+
+    @property
+    def Data(self):
+        print(self.data)
+    
+    @property
+    def Lines(self):
+        print(self.lines)
+    
+    @property
+    def Parameters(self):
+        print_dict={}
+        for p in self.parameters:
+           print_dict[p[0]] = p[1]
+        
+        pprint(print_dict)
+
+    def set_lines(self,data: DataFrame, key_name: str) -> None:
+        if not self.lines:
+            self.lines = {}
+        self.lines[key_name] = data
+
+    def data_is_line(self):
+        self.set_lines(self.data,'line 1')
 
     def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)
