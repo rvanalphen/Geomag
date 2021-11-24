@@ -1,10 +1,10 @@
 from typing import Union,Dict
-from pathlib import PosixPath,Path
+from pathlib import Path,Path
 import os
 from pandas import DataFrame,merge
 from functools import reduce
 
-def files_to_dict(dirpath: Union[PosixPath,str]) -> Dict:
+def files_to_dict(dirpath: Union[Path,str]) -> Dict:
     num = 0
     files_dict = {}
     for filename in os.listdir(dirpath):

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Dict,Union
-from pathlib import PosixPath
+from pathlib import Path
 import os
 from pandas.core.frame import DataFrame
 from abc import ABC, abstractmethod
@@ -10,22 +10,22 @@ from abc import ABC, abstractmethod
 class DataExporter(ABC):
 
     @abstractmethod
-    def _make_directory(path: Union[PosixPath, str]) -> str:
+    def _make_directory(path: Union[Path, str]) -> str:
         pass
 
     @abstractmethod
-    def _make_outfile(path: Union[PosixPath, str],override_name: str = None) -> str:
+    def _make_outfile(path: Union[Path, str],override_name: str = None) -> str:
         pass 
 
     @abstractmethod
-    def exporter(path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
+    def exporter(path: Union[Path, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         pass
 
 
 class ExportPatch(DataExporter):
 
-    def _make_directory(self,path: Union[PosixPath, str]) -> str:
-        if type(path) == PosixPath:
+    def _make_directory(self,path: Union[Path, str]) -> str:
+        if type(path) == Path:
             parent_dir = path.parent
         else:
             #TODO fill in for string
@@ -40,7 +40,7 @@ class ExportPatch(DataExporter):
         return outpath
 
     
-    def _make_outfile(self,path: Union[PosixPath, str],override_name: str = None) -> str:
+    def _make_outfile(self,path: Union[Path, str],override_name: str = None) -> str:
 
         original_file = os.path.basename(path)
         name,_= original_file.split('.')
@@ -54,7 +54,7 @@ class ExportPatch(DataExporter):
         
         return new_file
 
-    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
+    def exporter(self,path: Union[Path, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         outpath = self._make_directory(path)
         outfile = self._make_outfile(path,override_name)
         outpath = outpath+'/'+outfile
@@ -79,8 +79,8 @@ class ExportPatch(DataExporter):
 
 class ExportLines(DataExporter):
 
-    def _make_directory(self,path: Union[PosixPath, str]) -> str:
-        if type(path) == PosixPath:
+    def _make_directory(self,path: Union[Path, str]) -> str:
+        if type(path) == Path:
             parent_dir = path.parent
         else:
             #TODO fill in for string
@@ -94,7 +94,7 @@ class ExportLines(DataExporter):
 
         return outpath
 
-    def _make_outfile(self,path: Union[PosixPath, str],key: str) -> str:
+    def _make_outfile(self,path: Union[Path, str],key: str) -> str:
 
         original_file = os.path.basename(path)
         name,_= original_file.split('.')
@@ -105,7 +105,7 @@ class ExportLines(DataExporter):
         
         return new_file
 
-    def exporter(self,path: Union[PosixPath, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
+    def exporter(self,path: Union[Path, str],data : DataFrame, lines: Dict,override_name: str = None) -> None:
         for index, (key,value) in enumerate(lines.items()):
             outpath = self._make_directory(path)
             outfile = self._make_outfile(path,key)
@@ -132,12 +132,12 @@ class ExportLines(DataExporter):
 
 class ExportAll(DataExporter):
     
-    def _make_directory(self,path: Union[PosixPath, str]) -> str:
+    def _make_directory(self,path: Union[Path, str]) -> str:
         pass
 
-    def _make_outfile(self,path: Union[PosixPath, str]) -> str:
+    def _make_outfile(self,path: Union[Path, str]) -> str:
         pass
 
-    def exporter(self,path: Union[PosixPath, str], data: DataFrame, lines: Dict,override_name: str = None) -> None:
+    def exporter(self,path: Union[Path, str], data: DataFrame, lines: Dict,override_name: str = None) -> None:
         ExportPatch().exporter(path,data,lines,override_name)
         ExportLines().exporter(path,data,lines,override_name)
