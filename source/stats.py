@@ -26,18 +26,15 @@ class Stats():
     def _plot_ks(self,step,step_normal_ecdf,step_model_cdf,df):
         # Initialize the vertical-offset for the stacked bar chart.
         
-        fig, ax = plt.subplots(figsize=(10, 10))
-        fig.tight_layout()
+        fig, axs = plt.subplots(figsize=(10, 10))
 
-        ax.plot(step, step_normal_ecdf)
-        ax.plot(step, step_model_cdf)
-        ax.table(cellText=df.values, colLabels=df.columns,
-            loc='bottom', bbox=[0.25, -0.5, 0.5, 0.3])
-        
-        plt.subplots_adjust(left=0.2, bottom=0.1)
-        plt.title('KS Test')
-        plt.xlabel("Bins")
+        fig.suptitle('KS Test')
+        axs.plot(step, step_normal_ecdf)
+        axs.plot(step, step_model_cdf)
+        axs.table(cellText=df.values, colLabels=df.columns,loc='top')
+
         plt.ylabel("Cumulative Probability")
+        plt.xlabel("Bins")
         plt.show()
 
     def ks_test(self,observed: App, model: PloufModel,bins : List[Union[float,int]] = None,key_name='line 1'):

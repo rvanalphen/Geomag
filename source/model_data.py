@@ -264,3 +264,4 @@ class PloufModel(BaseModel):
             model_dict[model_num] = results[i]
 
             self.results = model_dict
+            print('Model Made')
