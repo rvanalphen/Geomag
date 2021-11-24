@@ -4,6 +4,7 @@ from typing import Union, Dict
 from pathlib import Path
 
 from source.app import App
+from source.model_data import PloufModel
 
 
 class DataPlotter:
@@ -92,7 +93,7 @@ class DataPlotter:
             plt.show()
 
 
-    def plot_offset_profile(self,application: App, offset=150):
+    def plot_offset_profile(self,application: App, offset=150) -> None:
     
         data = application.lines
 
@@ -138,3 +139,16 @@ class DataPlotter:
                 start_offset += offset
         plt.show()
 
+    def plot_model(self,observed: Union[Dict,DataFrame], model: PloufModel) -> None:
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
+
+        for key in model.results.keys():
+            ax.plot(model.results[key].dist,model.results[key].mag,'r-',ms=2,label='Calculated')
+
+        ax.set_xlabel('Horizontal distance north from line center')
+        ax.set_ylabel('Magnetic Anomaly (nT)')
+        ax.legend(loc='lower left')
+        plt.show()

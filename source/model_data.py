@@ -8,7 +8,7 @@ from pprint import pprint
 
 from source.load_data import path_to_df
 
-class Models(BaseModel):
+class PloufModel(BaseModel):
     line: DataFrame
     shapes: List[Union[Path,str]]
     top_bound: List[Union[float,int]]
@@ -17,6 +17,7 @@ class Models(BaseModel):
     declination: int
     intensity: Union[float,int]
     shape_dict: Dict = None
+    results: Dict = None
 
     # no current pydantic way to validate dataframe
     class Config:
@@ -43,13 +44,9 @@ class Models(BaseModel):
 
     @validator('intensity')
     def other_validator(cls, mi) -> Union[float,int]:
-        print(mi)
         if type(mi) != float and type(mi) != int:
             raise TypeError("intensity must be an int or float")
         return mi
-
-
-class PloufModel(Models):
 
     @property
     def Parameters(self):
@@ -72,7 +69,8 @@ class PloufModel(Models):
         mag0 =  self.line.Mag_nT.mean()
         self.line['Mag_nT'] -= mag0
 
-        return self.line
+        self.line = self.line
+
 
     def _center_shapes(self,x0: int, y0: int):
 
@@ -80,9 +78,9 @@ class PloufModel(Models):
             self.shape_dict[key]['Northing'] -= x0
             self.shape_dict[key]['Easting'] -= y0
 
-        return self.shape_dict
+        self.shape_dict = self.shape_dict
 
-    def plouf(self,X,Y,z1,z2,inc,dec,mi,UTM_Line):
+    def plouf(self,X,Y,z1,z2):
         
         from math import cos, sin,pi,sqrt,log,atan2
         from numpy import asarray
@@ -97,8 +95,8 @@ class PloufModel(Models):
         #y must be the easting (east coordinate),
         #Map coordinates, must be clockwise 
 
-        minc = inc*(pi/180) #down in rad 
-        mdec = dec*(pi/180) #east in rad
+        minc = self.inclination*(pi/180) #down in rad 
+        mdec = self.declination*(pi/180) #east in rad
 
         #calculate direction cosines of magnetiation
         ml = cos(minc) * cos(mdec)
@@ -106,9 +104,9 @@ class PloufModel(Models):
         mn = sin(minc)
 
         #components of magnetization in x,y,z, directions
-        mx = mi*ml
-        my = mi*mm
-        mz = mi*mn
+        mx = self.intensity*ml
+        my = self.intensity*mm
+        mz = self.intensity*mn
 
         # set earths field
         einc = 61.6*(pi/180)
@@ -126,7 +124,7 @@ class PloufModel(Models):
         b_total_list =[]
     ########################################################
         #insert for J loop
-        for j in range(int(UTM_Line.Northing.min()),int(UTM_Line.Northing.max()),1):
+        for j in range(int(self.line.Northing.min()),int(self.line.Northing.max()),1):
         
             #px is the northing of the observation point
             #py is the easting of the observation point
@@ -225,14 +223,14 @@ class PloufModel(Models):
 
         return df_model
         
-    def run_model(self):
+    def run_plouf(self):
         self._shapes_path_to_list()
 
         x0 = self.line.Northing.mean() 
         y0 = self.line.Easting.mean()
 
-        self.line = self._center_line(x0,y0)
-        self.shape_dict = self._center_shapes(x0,y0)
+        self._center_line(x0,y0)
+        self._center_shapes(x0,y0)
 
         posX_dict = {}
         posY_dict = {}
@@ -256,19 +254,13 @@ class PloufModel(Models):
             z = 'Zt{}'.format(i+1)
             ztop_dict[z] = self.top_bound[i]
 
-            print()
-
             results.append(
                 self.plouf(
                     posX_dict[x],posY_dict[y],ztop_dict[z],
                     self.bottom_bound,
-                    self.inclination,
-                    self.declination,
-                    self.intensity,
-                    self.line
                     )
                 )
             model_num = 'df_model{}'.format(i+1)
             model_dict[model_num] = results[i]
 
-            return model_dict
+            self.results = model_dict

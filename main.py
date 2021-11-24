@@ -45,7 +45,7 @@ def main():
     app.data = app.data[app.data.Northing < 4069900]
     app.data_is_line()
 
-    plouf = PloufModel(
+    model = PloufModel(
         line = app.lines['line 1'],
         shapes= [Path(f'{SHAPE_DIR}/shape3.utm')],
         top_bound= [45.5],
@@ -55,31 +55,10 @@ def main():
         intensity= 0.5
     )
 
-    model_dict = plouf.run_model()
-    print(app.lines['line 1'])
-    print(len(model_dict['df_model1']))
+    model.run_plouf()
 
-
-    fig, ax = plt.subplots(figsize=(10, 10))
-
-    ax.plot(app.lines['line 1'].Northing,app.lines['line 1'].Mag_nT,'go',ms=2,label='Observed')
-
-    for key in model_dict.keys():
-        ax.plot(model_dict[key].dist,model_dict[key].mag,'r-',ms=2,label='Calculated(plouf)')
-
-    ax.set_xlabel('Horizontal distance north from line center')
-    ax.set_ylabel('Magnetic Anomaly (nT)')
-    ax.legend(loc='lower left')
-    plt.show()
-
-
-
-
-
-    
-
-
-
+    plotter = DataPlotter()
+    plotter.plot_model(app.lines['line 1'],model=model)
 
 
 
