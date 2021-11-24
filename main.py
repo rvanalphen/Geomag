@@ -1,17 +1,13 @@
 
 import timeit   
 from pathlib import Path
-import pandas
 
-from pandas.core.frame import DataFrame
-from source.export_data import ExportLines
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
 from source.app import App
-from source.separate_data import SingleSeparator
-from source.correct_data import NorthSouthDetrend
 from source.model_data import PloufModel
 import matplotlib.pyplot as plt
+from source.stats import Stats
 
 #TODO fix recursive folder creation
 ######################## - INPUTS - #############################
@@ -21,10 +17,10 @@ SHAPE_DIR = '/home/robert/Codes/pycodes/geomag/shapes/'
 
 FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17_line 1_processedOn_2021_11_23.csv')# north - south lines
 # FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
-INEPSG = '4326'
-OUTEPSG = '32611'
-DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
-ELEVATION = '0'
+# INEPSG = '4326'
+# OUTEPSG = '32611'
+# DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
+# ELEVATION = '0'
 
 ######################### - Main - ###############################
 # start = [536126.5,4070411]
@@ -57,9 +53,8 @@ def main():
 
     model.run_plouf()
 
-    plotter = DataPlotter()
-    plotter.plot_model(app.lines['line 1'],model=model)
-
+    # DataPlotter().plot_model(app,model)
+    Stats().ks_test(app,model)
 
 
 if __name__ == "__main__":

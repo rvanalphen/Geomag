@@ -139,7 +139,8 @@ class DataPlotter:
                 start_offset += offset
         plt.show()
 
-    def plot_model(self,observed: Union[Dict,DataFrame], model: PloufModel) -> None:
+    def plot_model(self,observed: App, model: PloufModel,key_name='line 1') -> None:
+        observed = observed.lines[key_name]
 
         fig, ax = plt.subplots(figsize=(10, 10))
 

@@ -112,6 +112,7 @@ class SingleSeparator(DataSeparator):
     def split(self, data: DataFrame, line_params: Dict, buffer: int) -> DataFrame:
         
         ideal_lines = self._parameter_calculator(line_params,buffer)
+        
         dfp = GeoDataFrame(data,geometry=data.loc[:,["Easting","Northing"]].apply(Point, axis=1))
         
         line_dict = {}
