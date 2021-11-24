@@ -29,12 +29,12 @@ Python class for processing, visualizing and manipulating geomagnetic survey dat
     
     - integrate wavlet leveling
 
-    - remove linear trends from line
+    - DONE: remove linear trends from line
     
     - possible other ideas: 
     
         - DONE: visualization of individual transects
         - DONE: visualization of sets of transects with an offset,
-        - plouff forward modeling, 
+        - DONE: plouff forward modeling, 
         - running some of the simple methods from the command line, 
         - integrate rocco's python inversion code

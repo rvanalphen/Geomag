@@ -18,7 +18,7 @@ class MagCorrector:
         return (startyear,startmonth,startday),(endyear,endmonth,endday)
 
 
-    def _get_value(self, data: DataFrame, dates: List[str], elevation: str) -> Union[int,float]:
+    def _get_value(self, data: DataFrame, dates: List[str], elevation: str) -> Union[float,int]:
 
         start,end = self._parse_dates(dates)
 
@@ -38,7 +38,7 @@ class MagCorrector:
         # print(r.json()['result'][0]['totalintensity'])
         return r.json()['result'][0]['totalintensity']
 
-    def global_detrend(self, data: DataFrame, value: Union[int,float] = None, dates: List[str] = None, elevation: str = None) -> None:
+    def global_detrend(self, data: DataFrame, value: Union[float,int] = None, dates: List[str] = None, elevation: str = None) -> None:
         if not value:
             value = self._get_value(data, dates, elevation)
 

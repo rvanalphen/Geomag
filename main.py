@@ -1,6 +1,7 @@
 
 import timeit   
 from pathlib import Path
+import pandas
 
 from pandas.core.frame import DataFrame
 from source.export_data import ExportLines
@@ -30,7 +31,6 @@ ELEVATION = '0'
 # end = [536164,4068755]
 # start = [534678,4068732]
 # end = [534641,4070410]
-# l5 = pandas.read_csv('./test.in',sep=' ',header=0)
 
 def main():
 
@@ -44,36 +44,36 @@ def main():
     app = App(parameters = geomag)
     app.data = app.data[app.data.Northing < 4069900]
     app.data_is_line()
-    
+
     plouf = PloufModel(
-        line = app.data,
+        line = app.lines['line 1'],
         shapes= [Path(f'{SHAPE_DIR}/shape3.utm')],
-        top_bound= [45],
-        bottom_bound= 54,
+        top_bound= [45.5],
+        bottom_bound= 55,
         inclination= -67,
         declination= 177,
-        intensity= 1
+        intensity= 0.5
     )
 
-    plouf.run_model()
-    
-    # print(
-    #     plouf.shape_dict['shape 1']
-    # )
-
-
-
+    model_dict = plouf.run_model()
+    print(app.lines['line 1'])
+    print(len(model_dict['df_model1']))
 
 
     fig, ax = plt.subplots(figsize=(10, 10))
 
-    for key in plouf.shape_dict.keys():
-        ax.plot(plouf.shape_dict[key].Easting,
-                plouf.shape_dict[key].Northing)
+    ax.plot(app.lines['line 1'].Northing,app.lines['line 1'].Mag_nT,'go',ms=2,label='Observed')
 
-    ax.plot(plouf.line.Easting,plouf.line.Northing,linestyle='None', marker="o")
+    for key in model_dict.keys():
+        ax.plot(model_dict[key].dist,model_dict[key].mag,'r-',ms=2,label='Calculated(plouf)')
 
+    ax.set_xlabel('Horizontal distance north from line center')
+    ax.set_ylabel('Magnetic Anomaly (nT)')
+    ax.legend(loc='lower left')
     plt.show()
+
+
+
 
 
     
