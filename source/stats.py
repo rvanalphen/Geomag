@@ -7,6 +7,8 @@ from typing import List
 from source.app import App
 from numpy import linspace
 from math import sqrt
+from numpy import mean, std, var
+from scipy.stats import kurtosis,skew,chisquare,chi2
 
 class Stats():
 
@@ -22,6 +24,23 @@ class Stats():
 
         return calc_in_bins,bin_frequency,binned_data
 
+
+    def _ks_stats(self,binned_data,normal_ecdf,model_cdf,all_observations):
+        diff = []
+        for i in range (len(binned_data)):
+            diff.append(normal_ecdf[i]-model_cdf[i])
+
+        max_diff = abs(max(diff))
+        degrees_of_freedom = all_observations
+        confidence_level = 1.36/sqrt(all_observations)
+        
+        df = DataFrame.from_dict(
+            {'max difference':[max_diff],
+                'degrees of freedom':[degrees_of_freedom],
+                'at 95% confidence':[confidence_level]}
+                )
+        
+        return df 
 
     def _plot_ks(self,step,step_normal_ecdf,step_model_cdf,df):
         # Initialize the vertical-offset for the stacked bar chart.
@@ -39,7 +58,7 @@ class Stats():
 
     def ks_test(self,observed: App, model: PloufModel,bins : List[Union[float,int]] = None,key_name='line 1'):
        
-        model = model.results['df_model1']
+        model = model.results['model 1']
         observed = observed.lines[key_name]
         
         calc_in_bins,bin_frequency,binned_data = self._make_bins(observed,model)
@@ -69,20 +88,84 @@ class Stats():
             step_model_cdf.append(model_running_total)
             step_model_cdf.append(model_running_total)
         
+        stats = self._ks_stats(binned_data,normal_ecdf,model_cdf,all_observations)
         
+        self._plot_ks(step,step_normal_ecdf,step_model_cdf,stats)
 
-        diff = []
-        for i in range (len(binned_data)):
-            diff.append(normal_ecdf[i]-model_cdf[i])
+        return stats
 
-        max_diff = abs(max(diff))
-        degrees_of_freedom = all_observations
-        confidence_level = 1.36/sqrt(all_observations)
+    def _critical_value(self,observed,confidnece):
         
+        df = len(observed)-1
+        conf = (100-confidnece)/100
+
+        return chi2.ppf(1-conf, df)
+
+    def _chi_compare(self,chi2_value: Union[int,float], critical_value: Union[int,float]):
+
+        if chi2_value > critical_value:
+            print( 'Chi2: %f > Critical Value: %f' % (chi2_value,critical_value))
+            print("Model is not a good fit")
+        else:
+            print( 'Chi2: %f < Critical Value: %f' % (chi2_value,critical_value))
+            print("Model is a good fit")
+
+    def chi_squared(self,observed: App, model: PloufModel,confidnece: int = 95,key_name='line 1'):
+    
+        observed = observed.lines[key_name].Mag_nT
+        model = model.results['model 1'].mag
+
+        chi2_value,_ = chisquare(observed,model)
+        critical_value = self._critical_value(observed,confidnece)
+
+        self._chi_compare(chi2_value,critical_value)
+
+
+
+
+
+
+
+
+    def get_stats(self,data: App,bins=50):
+        data = data.data
+
         df = DataFrame.from_dict(
-            {'max difference':[max_diff],
-                'degrees of freedom':[degrees_of_freedom],
-                'at 95% confidence':[confidence_level]}
-                )
+            {   "mean" : [mean(data.Mag_nT.values)],
+                "var"  : [var(data.Mag_nT.values)],
+                "std"  : [std(data.Mag_nT.values)],
+                "skew" : [skew(data.Mag_nT.values)],
+                "kurt" : [kurtosis(data.Mag_nT.values)]
+            }
+        )
 
-        self._plot_ks(step,step_normal_ecdf,step_model_cdf,df)
+        length_max = max(data.Mag_nT)
+        length_min = min(data.Mag_nT)
+
+        bin_width = (length_max - length_min)/bins # notice the use of parentheses
+        print("bin width = ", bin_width, "nT")
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        fig.suptitle('Mag Signal Histogram')
+        
+        ax.hist(data.Mag_nT, bins=bins)
+        ax.table(cellText=df.values, colLabels=df.columns,loc='top')
+        
+        plt.xlabel('Mag Siganl (nT)')
+        plt.ylabel('Counts')
+        plt.grid(True)
+
+        data.Mag_nT.values.sort()
+        y=[]
+        for i in range (0,len(data.Mag_nT.values)):
+            y_value = 1-(i/len(data.Mag_nT.values)) 
+            y.append(y_value)
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        plt.plot(data.Mag_nT,y)
+
+        plt.title('Survivor Plot')
+        plt.xlabel('Mag Siganl (nT)') 
+        plt.ylabel('fraction')
+        
+        plt.show()

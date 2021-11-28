@@ -5,7 +5,7 @@ from typing import Dict, List, Union
 from pydantic.main import UNTOUCHED_TYPES
 from pyproj import CRS
 from pprint import pprint
-
+from math import cos, sin,pi,sqrt,log,atan2
 from source.load_data import path_to_df
 
 class PloufModel(BaseModel):
@@ -17,7 +17,7 @@ class PloufModel(BaseModel):
     declination: int
     intensity: Union[float,int]
     shape_dict: Dict = None
-    results: Dict = None
+    results: Dict = {}
 
     # no current pydantic way to validate dataframe
     class Config:
@@ -65,9 +65,6 @@ class PloufModel(BaseModel):
         #Centering data around the middle of Survey Line  
         self.line['Northing'] -= x0
         self.line['Easting'] -= y0
-        #Centering anomaly around zero
-        mag0 =  self.line.Mag_nT.mean()
-        self.line['Mag_nT'] -= mag0
 
         self.line = self.line
 
@@ -80,16 +77,15 @@ class PloufModel(BaseModel):
 
         self.shape_dict = self.shape_dict
 
-    def plouf(self,X,Y,z1,z2):
-        
-        from math import cos, sin,pi,sqrt,log,atan2
-        from numpy import asarray
-        from pandas import DataFrame
+    def plouf(self,X,Y,z1):
+
         #Setting Parameters
         print('Running Plouf...')
         x = X
         y = Y
+        z2 = self.bottom_bound
         sides=len(X)-1
+        df_model = DataFrame()
 
         #x must be the northing (north coordinate), 
         #y must be the easting (east coordinate),
@@ -120,18 +116,18 @@ class PloufModel(BaseModel):
 
         prop = 400*pi
 
-        px_list =[]
+        northing_list =[]
+        easting_list =[]
         b_total_list =[]
     ########################################################
         #insert for J loop
-        for j in range(int(self.line.Northing.min()),int(self.line.Northing.max()),1):
-        
+        for j,k in zip(self.line.Northing,self.line.Easting,):
             #px is the northing of the observation point
             #py is the easting of the observation point
             #northing and easting observation points 
             px = j
-            py = 0
-        
+            py = k
+
             #setting volume integral to zero 
             v1 = 0
             v2 = 0
@@ -167,9 +163,10 @@ class PloufModel(BaseModel):
                 
                 d1 = x1*s + y1*c
                 d2 = x2*s + y2*c
-                
+
                 r1sq = x1**2 + y1**2
                 r2sq = x2**2 + y2**2
+
                 r11 = sqrt(r1sq + z1**2)
                 r12 = sqrt(r1sq + z2**2)
                 r21 = sqrt(r2sq + z1**2)
@@ -198,70 +195,41 @@ class PloufModel(BaseModel):
             #this calculation works for anomaly << total field strength
             b_total = el*bx + em*by + en*bz
         
-            px_list.append(px)
-            m = asarray(px_list)
-                
+            northing_list.append(px)       
+            easting_list.append(py)         
             b_total_list.append(b_total)
-            n = asarray(b_total_list)
-            df_dist = DataFrame
-            df_dist = df_dist(m,columns=['dist'])
-        
 
-            df_mag = DataFrame
-            df_mag = df_mag(n,columns=['mag'])
-        
+        df_model['mag'] = b_total_list
+        df_model['dist'] = northing_list
+        df_model['xdist'] = easting_list
 
-            df_model = DataFrame
-            df_model = df_dist.join(df_mag)
-            #uncomment these lines to check volume integral
-            #v4 = -(v1+v6)
-            #test = -($v1+$v6)
-            #print(v4,test)
-        
-            #print results 
-            # print (px,b_total)
+        # print(df_model)
 
         return df_model
-        
+
+
     def run_plouf(self):
+
+        x0 = self.line.Northing.median() 
+        y0 = self.line.Easting.median()
+
         self._shapes_path_to_list()
-
-        x0 = self.line.Northing.mean() 
-        y0 = self.line.Easting.mean()
-
         self._center_line(x0,y0)
         self._center_shapes(x0,y0)
 
-        posX_dict = {}
-        posY_dict = {}
-        posVx = []
-        posVy = []
-
-        ztop_dict ={}
-        model_dict = {}
-        results = []
-
         for i, (key,_) in enumerate(self.shape_dict.items()):
 
-            posVx.append(self.shape_dict[key].Northing.tolist())
-            x = 'X{}'.format(i+1)
-            posX_dict[x] = posVx[i]
+            shapex = self.shape_dict[key].Northing.tolist()
 
-            posVy.append(self.shape_dict[key].Easting.tolist())
-            y = 'Y{}'.format(i+1)
-            posY_dict[y] = posVy[i]
+            shapey = self.shape_dict[key].Easting.tolist()
 
-            z = 'Zt{}'.format(i+1)
-            ztop_dict[z] = self.top_bound[i]
+            shapez = self.top_bound[i]
 
-            results.append(
-                self.plouf(
-                    posX_dict[x],posY_dict[y],ztop_dict[z],
-                    self.bottom_bound,
-                    )
-                )
-            model_num = 'df_model{}'.format(i+1)
-            model_dict[model_num] = results[i]
+            model_num = 'model {}'.format(i+1)
+            self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
-            self.results = model_dict
-            print('Model Made')
+        if len(self.results) > 1:
+            for value in self.results.values():
+                pass
+
+        print('Model Made')

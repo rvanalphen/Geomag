@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
+import subprocess
+import pygmt as gmt
+import os
 from pandas import DataFrame
-from typing import Union, Dict
-from pathlib import Path
-
 from source.app import App
 from source.model_data import PloufModel
+
 
 
 class DataPlotter:
@@ -153,3 +154,115 @@ class DataPlotter:
         ax.set_ylabel('Magnetic Anomaly (nT)')
         ax.legend(loc='lower left')
         plt.show()
+
+
+    def _Createcpt(self,color,scale=None):
+
+        netcdf = "./grid.nc"
+
+        if scale:
+            cptSeries=scale+'/1'
+        else:
+            cptSeries = subprocess.run(
+                ['gmt', 'grdinfo', '-T-', netcdf], capture_output=True, text=True)
+
+
+            
+            cptSeries = cptSeries.stdout[2:]
+            cptSeries = cptSeries+'/1'
+
+        gmt.makecpt(cmap=color, series=cptSeries,
+                    continuous=True, verbose='w', output='geomag.cpt')
+
+    def _GMTcreatNetCDF(self, df, spacing,skip=False):
+        print('###')
+        if skip:
+            Q = 'n'
+        else:
+            Q = input(
+                'do you want to input your own bounds? Otherwise it will be calcuLated for you.(y/n) ')
+            bounds = ''
+
+        cols = df.columns
+        # giving prioraty to UTM
+        if 'Easting' in cols:
+            table = df[['Easting', 'Northing', "Mag_nT"]]
+
+            if Q != 'y':
+                bounds = str(df.Easting.min())+'/'+str(df.Easting.max()) + '/' + \
+                    str(df.Northing.min())+'/' + \
+                    str(df.Northing.max())
+
+            else:
+                bnds = input('input bounds without -R ')
+                bounds = str(bnds)
+
+        else:
+            print('Data needs to be transformed into a utm coordinate system')
+            exit()
+
+        gmt.blockmedian(table, spacing=spacing, region=bounds,
+                        verbose='w', outfile='./blkmdn.gmt')
+
+        gmt.surface(data='./blkmdn.gmt', spacing=spacing, region=bounds,
+                    verbose='w', outfile='./grid.nc')
+
+    def GMTHeatmap(self,df, outfile, spacing,colorscale='haxby',scale=None,skip=False):
+            netcdf = "./grid.nc"
+            cmap = "./geomag.cpt"
+            bkmdn = './blkmdn.gmt'
+
+            f1 = os.path.isfile(outfile)
+            f2 = os.path.isfile(bkmdn)
+            f3 = os.path.isfile(netcdf)
+            f4 = os.path.isfile(cmap)
+            if f1:
+                subprocess.run(["rm",outfile])
+            if f2:
+                subprocess.run(["rm",bkmdn])
+            if f3:
+                subprocess.run(["rm",netcdf])
+            if f4:
+                subprocess.run(["rm",cmap])
+
+
+            self._GMTcreatNetCDF(df,spacing,skip)
+            self._Createcpt(colorscale,scale)
+
+
+            grdBounds = subprocess.run(
+                ['gmt', 'grdinfo', '-I-', netcdf], capture_output=True, text=True)
+            grdBounds = grdBounds.stdout[2:]
+
+            fig = gmt.Figure()
+            gmt.config(MAP_FRAME_TYPE="plain")
+            gmt.config(FORMAT_GEO_MAP="ddd.xx")
+
+            fig.basemap(projection='x1:10000', region=grdBounds,
+                        frame=['af', 'WeSn'],  verbose='w')
+
+            fig.grdimage(grid=netcdf, cmap=cmap,
+                        frame='+t"Survey Heatmap"', verbose='w')
+
+            fig.colorbar(cmap=cmap,
+                        frame='af', position='JMR', verbose='w')
+
+            if skip:
+                pass
+            else:
+                print('###')
+                Q = input('do you want to contour your map?.(y/n) ')
+                if Q == 'y':
+                    interval = input(
+                        'What contour interval do you want? annotations will be 2 times your inteval ')
+                    contour = str(interval)
+                    anno = int(contour)*2
+                    anno = str(anno)
+                    fig.grdcontour(grid=netcdf, interval=contour,
+                                annotation=anno, pen='0.5p', verbose='w')
+                else:
+                    pass
+            
+            subprocess.run(['rm', './grid.nc', './blkmdn.gmt', './geomag.cpt'])
+            print('saving figure')
+            fig.savefig(outfile)
