@@ -151,8 +151,7 @@ class App:
         else:
             self.lines = separation_strategy.split(self.data,line_params,buffer)
 
-    def export_data(self,export_strategy: DataExporter):
-        override_name='All_NS_samespacing'
+    def export_data(self,export_strategy: DataExporter,override_name: str = None):
         export_strategy.exporter(self.parameters.filepath,self.data,self.lines,override_name)
 
 

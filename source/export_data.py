@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Dict,Union
-from pathlib import Path
+from pathlib import Path, PosixPath
 import os
 from pandas.core.frame import DataFrame
 from abc import ABC, abstractmethod
@@ -25,21 +25,21 @@ class DataExporter(ABC):
 class ExportPatch(DataExporter):
 
     def _make_directory(self,path: Union[Path, str]) -> str:
-        if type(path) == Path:
+        if type(path) == PosixPath:
             parent_dir = path.parent
+
+            outpath = str(parent_dir) + '/' + 'cleaned_data'
+                
+            if not os.path.isdir(outpath):
+                os.mkdir(outpath)
+
+            return outpath
+
         else:
             #TODO fill in for string
             pass
         
-        outpath = str(parent_dir) + '/' + 'cleaned_data'
 
-        
-        if not os.path.isdir(outpath):
-            os.mkdir(outpath)
-
-        return outpath
-
-    
     def _make_outfile(self,path: Union[Path, str],override_name: str = None) -> str:
 
         original_file = os.path.basename(path)
@@ -80,7 +80,7 @@ class ExportPatch(DataExporter):
 class ExportLines(DataExporter):
 
     def _make_directory(self,path: Union[Path, str]) -> str:
-        if type(path) == Path:
+        if type(path) == PosixPath:
             parent_dir = path.parent
         else:
             #TODO fill in for string

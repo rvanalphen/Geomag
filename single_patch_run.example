@@ -1,32 +1,72 @@
-   # all_files = files_to_dict(DATA_DIR)
+import timeit   
+from pathlib import Path
+from source.correct_data import NorthSouthDetrend
+from source.helper_functions import files_to_dict,merge_object_data
+from source.plot_data import DataPlotter
+from source.geomag import GeoMag
+from source.app import App
+from source.model_data import PloufModel
+import matplotlib.pyplot as plt
+from source.stats import Stats
 
-    # object_dict={}
-    # for KEY,FILE in all_files.items():
+#TODO fix recursive folder creation
+######################## - INPUTS - #############################
+
+DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/'
+INEPSG = '4326'
+OUTEPSG = '32611'
+DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
+ELEVATION = '0'
+
+######################### - Main - ###############################
+
+def main():
+
+    all_files = files_to_dict(DATA_DIR)
+    object_dict={}
     
-        # print(FILE,'\n')
-        # # initializing and validating input parameters
-        # geomag = GeoMag(
-        #     filepath=FILE,
-        #     input_epsg=INEPSG,
-        #     output_epsg=OUTEPSG,
-        #     dates=DATES,
-        #     elevation=ELEVATION
-        # )
+    for KEY,FILE in all_files.items():
+    
+        print(FILE,'\n')
+        # initializing and validating input parameters
+        geomag = GeoMag(
+            filepath=FILE,
+            input_epsg=INEPSG,
+            output_epsg=OUTEPSG,
+            dates=DATES,
+            elevation=ELEVATION
+        )
 
-    #     # create the application and plotting class
-    #     app = App(parameters = geomag)
+        # create the application and plotting class
+        app = App(parameters = geomag)
 
-    #     # transforming lat long to utm
-    #     app.transform_coords()
+        # transforming lat long to utm
+        app.transform_coords()
 
-    #     # cleaning data based on input strategey
-    #     app.cut_data(buffer=5)
+        # cleaning data based on input strategey
+        app.cut_data(buffer=5)
 
-    #     # putting each objects data into a list for merging 
-    #     if app.data.dir.values[0] =='NS':
-    #         object_dict[KEY] = app.data
+        # putting each objects data into a list for merging 
+        # if app.data.dir.values[0] =='NS':
+        #     object_dict[KEY] = app.data
+        object_dict[KEY] = app.data
     
     # merging each files cleaned data into one DataFrame
-    # merged_data = merge_object_data(object_dict)
-    # app = App(parameters = geomag, merged_patches = merged_data)
+    merged_data = merge_object_data(object_dict)
+    app = App(parameters = geomag, merged_patches = merged_data)
 
+    app.subtract_total_field()
+    app.subtract_mean()
+
+    plotter = DataPlotter()
+
+    plotter.GMTHeatmap(app.data,'wowwee.png',25)
+
+
+
+if __name__ == "__main__":
+    start = timeit.default_timer()
+    print('Processing File(s):\n')
+    main()
+    stop = timeit.default_timer()
+    print('\n Data Processed in %f second(s)' % (stop - start))

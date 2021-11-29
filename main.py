@@ -1,7 +1,7 @@
-
-#%%
 import timeit   
 from pathlib import Path
+
+from pyproj.transformer import transform
 from source.correct_data import NorthSouthDetrend
 
 from source.plot_data import DataPlotter
@@ -11,25 +11,13 @@ from source.model_data import PloufModel
 import matplotlib.pyplot as plt
 from source.stats import Stats
 
-#TODO fix recursive folder creation
 ######################## - INPUTS - #############################
 
-DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data/cleaned_lines/'
-SHAPE_DIR = '/home/robert/Codes/pycodes/geomag/shapes/'
-
-FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17_line 2_processedOn_2021_11_23.csv')# north - south lines
-# FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
-# INEPSG = '4326'
-# OUTEPSG = '32611'
-# DATES = ['2019-10-18', '2019-10-17',  '2019-10-19', '2019-10-21']
-# ELEVATION = '0'
-
+DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data/'
+FILE = Path(f'{DATA_DIR}/All_data_cleaned_processedOn_2021_11_28.csv')# north - south lines
+INEPSG = '4326'
+OUTEPSG = '32611'
 ######################### - Main - ###############################
-# start = [536126.5,4070411]
-# end = [536164,4068755]
-# start = [534678,4068732]
-# end = [534641,4070410]
-#%%
 
 def main():
 
@@ -37,33 +25,25 @@ def main():
     # initializing and validating input parameters
     geomag = GeoMag(
         filepath=FILE,
+        input_epsg=INEPSG,
+        output_epsg=OUTEPSG
     )
 
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
-    app.data = app.data[app.data.Northing < 4069900]
-    app.data_is_line()
-    app.subtract_line(NorthSouthDetrend())
 
-    plotter = DataPlotter()
-    statter = Stats()
-
-    model = PloufModel(
-        line = app.lines['line 1'],
-        shapes= [Path(f'{SHAPE_DIR}/shape3.utm')],
-        top_bound= [43],
-        bottom_bound= 55,
-        inclination= -67,
-        declination= 177,
-        intensity= 0.5
-    )
+    from source.carto_plot import cartoplot
 
 
-    model.run_plouf()
+    cartoplot(app,'survey points',length=500,segments=2)
 
-    # plotter.plot_model(app,model)
-    # statter.ks_test(app,model)
-    # statter.chi_squared(app,model)
+
+
+
+
+
+
+
 
 
 
@@ -73,4 +53,3 @@ if __name__ == "__main__":
     main()
     stop = timeit.default_timer()
     print('\n Data Processed in %f second(s)' % (stop - start))
-
