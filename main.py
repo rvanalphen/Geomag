@@ -32,10 +32,8 @@ def main():
     # creating new App instance with all cleaned data
     app = App(parameters = geomag)
 
-    from source.carto_plot import cartoplot
-
-
-    cartoplot(app,'survey points',length=500,segments=2)
+    plotter = DataPlotter()
+    plotter.cartoplot(app,'survey points',length=500,segments=2)
 
 
 
