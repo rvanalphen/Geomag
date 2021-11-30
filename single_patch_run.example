@@ -4,7 +4,7 @@ from source.correct_data import NorthSouthDetrend
 from source.helper_functions import files_to_dict,merge_object_data
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
-from source.app import App
+from source.app import MagApp
 from source.model_data import PloufModel
 import matplotlib.pyplot as plt
 from source.stats import Stats
@@ -38,7 +38,7 @@ def main():
         )
 
         # create the application and plotting class
-        app = App(parameters = geomag)
+        app = MagApp(parameters = geomag)
 
         # transforming lat long to utm
         app.transform_coords()
@@ -53,7 +53,7 @@ def main():
     
     # merging each files cleaned data into one DataFrame
     merged_data = merge_object_data(object_dict)
-    app = App(parameters = geomag, merged_patches = merged_data)
+    app = MagApp(parameters = geomag, merged_patches = merged_data)
 
     app.subtract_total_field()
     app.subtract_mean()

@@ -30,7 +30,7 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
     return degrees_final
 
-class App:
+class MagApp:
     def __init__(self, parameters: GeoMag = None,merged_patches: DataFrame = None) -> None:
         if parameters != None and merged_patches is None:
             self.parameters = parameters

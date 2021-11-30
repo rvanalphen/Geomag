@@ -6,7 +6,7 @@ from source.correct_data import NorthSouthDetrend
 
 from source.plot_data import DataPlotter
 from source.geomag import GeoMag
-from source.app import App
+from source.app import MagApp
 from source.model_data import PloufModel
 import matplotlib.pyplot as plt
 from source.stats import Stats
@@ -39,8 +39,8 @@ def main():
         filepath=FILE,
     )
 
-    # creating new App instance with all cleaned data
-    app = App(parameters = geomag)
+    # creating new MagApp instance with all cleaned data
+    app = MagApp(parameters = geomag)
     app.data = app.data[app.data.Northing < 4069900]
     app.data_is_line()
     app.subtract_line(NorthSouthDetrend())

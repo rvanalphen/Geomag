@@ -3,7 +3,7 @@ import subprocess
 import pygmt as gmt
 from os import path
 from pandas import DataFrame
-from source.app import App
+from source.app import MagApp
 from source.model_data import PloufModel
 from cartopy import crs as ccrs
 from math import floor
@@ -24,7 +24,7 @@ class DataPlotter:
 
         return 'EW'
 
-    def simple_plot(self,application: App,lines: bool = False) -> None:
+    def simple_plot(self,application: MagApp,lines: bool = False) -> None:
 
         if not application.parameters:
             path = 'Merged Files'
@@ -58,7 +58,7 @@ class DataPlotter:
             plt.show()
 
 
-    def plot_mag_profile(self,application: App,key_name: str = None,direction: str = None) -> None:
+    def plot_mag_profile(self,application: MagApp,key_name: str = None,direction: str = None) -> None:
 
         if not application.parameters:
             path = 'Merged Files'
@@ -99,7 +99,7 @@ class DataPlotter:
             plt.show()
 
 
-    def plot_offset_profile(self,application: App, offset=150) -> None:
+    def plot_offset_profile(self,application: MagApp, offset=150) -> None:
     
         data = application.lines
 
@@ -145,7 +145,7 @@ class DataPlotter:
                 start_offset += offset
         plt.show()
 
-    def plot_model(self,observed: App, model: PloufModel,key_name='line 1') -> None:
+    def plot_model(self,observed: MagApp, model: PloufModel,key_name='line 1') -> None:
         observed = observed.lines[key_name]
 
         fig, ax = plt.subplots(figsize=(10, 10))
@@ -160,6 +160,20 @@ class DataPlotter:
         ax.legend(loc='lower left')
         plt.show()
 
+    def plot_residuals(self,observed: MagApp, model: PloufModel,key_name='line 1') -> None:
+        observed = observed.lines[key_name]
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
+
+        for key in model.results.keys():
+            ax.plot(model.results[key].dist,model.results[key].mag-observed.Mag_nT,'r-',ms=2,label='Calculated')
+
+        ax.set_xlabel('Horizontal distance north from line center')
+        ax.set_ylabel('Residuals (nT)')
+        ax.legend(loc='lower left')
+        plt.show()
 
     def _Createcpt(self,color,scale=None):
 
@@ -433,7 +447,7 @@ class DataPlotter:
                 loc='lower left', bbox_to_anchor=location, fancybox=True)
 
 
-    def _cartopy_main(self,app: App,transform, length=100, segments=5,unit='m'):
+    def _cartopy_main(self,app: MagApp,transform, length=100, segments=5,unit='m'):
             tiler = GoogleTiles(style='satellite')
 
             ext = (app.data.Long.min(),
@@ -455,7 +469,7 @@ class DataPlotter:
 
             return fig,ax1
 
-    def cartoplot(self,app: App,data_name: str,plot_lines=True,length=100, segments=5,unit='m'):
+    def cartoplot(self,app: MagApp,data_name: str,plot_lines=True,length=100, segments=5,unit='m'):
         
         transform = ccrs.PlateCarree()
         color = ['blue']

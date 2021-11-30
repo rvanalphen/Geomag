@@ -121,7 +121,7 @@ class PloufModel(BaseModel):
         b_total_list =[]
     ########################################################
         #insert for J loop
-        for j,k in zip(self.line.Northing,self.line.Easting,):
+        for j,k in zip(self.line.Northing,self.line.Easting):
             #px is the northing of the observation point
             #py is the easting of the observation point
             #northing and easting observation points 

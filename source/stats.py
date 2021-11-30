@@ -4,7 +4,7 @@ from pandas.core.frame import DataFrame
 from source.model_data import PloufModel
 from numpy import histogram
 from typing import List
-from source.app import App
+from source.app import MagApp
 from numpy import linspace
 from math import sqrt
 from numpy import mean, std, var
@@ -33,11 +33,13 @@ class Stats():
         max_diff = abs(max(diff))
         degrees_of_freedom = all_observations
         confidence_level = 1.36/sqrt(all_observations)
-        
+        conficence_level90 = 1.22/sqrt(all_observations)
+
         df = DataFrame.from_dict(
-            {'max difference':[max_diff],
+                {'max difference':[max_diff],
                 'degrees of freedom':[degrees_of_freedom],
-                'at 95% confidence':[confidence_level]}
+                'at 95% confidence':[confidence_level],
+                'at 90% confidence':[conficence_level90]}
                 )
         
         return df 
@@ -56,7 +58,7 @@ class Stats():
         plt.xlabel("Bins")
         plt.show()
 
-    def ks_test(self,observed: App, model: PloufModel,bins : List[Union[float,int]] = None,key_name='line 1'):
+    def ks_test(self,observed: MagApp, model: PloufModel,bins : List[Union[float,int]] = None,key_name='line 1'):
        
         model = model.results['model 1']
         observed = observed.lines[key_name]
@@ -88,11 +90,11 @@ class Stats():
             step_model_cdf.append(model_running_total)
             step_model_cdf.append(model_running_total)
         
-        stats = self._ks_stats(binned_data,normal_ecdf,model_cdf,all_observations)
+        ks_stats = self._ks_stats(binned_data,normal_ecdf,model_cdf,all_observations)
         
-        self._plot_ks(step,step_normal_ecdf,step_model_cdf,stats)
+        self._plot_ks(step,step_normal_ecdf,step_model_cdf,ks_stats)
 
-        return stats
+        return ks_stats
 
     def _critical_value(self,observed,confidnece):
         
@@ -103,15 +105,15 @@ class Stats():
 
     def _chi_compare(self,chi2_value: Union[int,float], critical_value: Union[int,float]):
 
-        if chi2_value > critical_value:
+        if chi2_value > critical_value or chi2_value < 0:
             print( 'Chi2: %f > Critical Value: %f' % (chi2_value,critical_value))
             print("Model is not a good fit")
         else:
             print( 'Chi2: %f < Critical Value: %f' % (chi2_value,critical_value))
             print("Model is a good fit")
 
-    def chi_squared(self,observed: App, model: PloufModel,confidnece: int = 95,key_name='line 1'):
-    
+    def chi_squared(self,observed: MagApp, model: PloufModel,confidnece: int = 95,key_name='line 1'):
+
         observed = observed.lines[key_name].Mag_nT
         model = model.results['model 1'].mag
 
@@ -120,14 +122,22 @@ class Stats():
 
         self._chi_compare(chi2_value,critical_value)
 
+    def rmse(self,observed: MagApp, model: PloufModel,key_name='line 1'):
+
+        observed = observed.lines[key_name].Mag_nT
+        model = model.results['model 1'].mag
+
+        rmse = sqrt(((model - observed) ** 2).mean())
+        
+        norm_rmse = rmse / (observed.max()-observed.min()) 
+        
+        print("RMSE: ",rmse)
+        print("Norm RMSE: ", norm_rmse)
+
+        return rmse,norm_rmse
 
 
-
-
-
-
-
-    def get_stats(self,data: App,bins=50):
+    def get_stats(self,data: MagApp,bins=50):
         data = data.data
 
         df = DataFrame.from_dict(
