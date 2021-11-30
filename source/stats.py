@@ -94,8 +94,6 @@ class Stats():
         
         self._plot_ks(step,step_normal_ecdf,step_model_cdf,ks_stats)
 
-        return ks_stats
-
     def _critical_value(self,observed,confidnece):
         
         df = len(observed)-1
@@ -130,15 +128,12 @@ class Stats():
         rmse = sqrt(((model - observed) ** 2).mean())
         
         norm_rmse = rmse / (observed.max()-observed.min()) 
-        
-        print("RMSE: ",rmse)
-        print("Norm RMSE: ", norm_rmse)
 
         return rmse,norm_rmse
 
 
-    def get_stats(self,data: MagApp,bins=50):
-        data = data.data
+    def get_stats(self,app: MagApp,bins=50):
+        data = app.data.copy()
 
         df = DataFrame.from_dict(
             {   "mean" : [mean(data.Mag_nT.values)],
@@ -155,7 +150,7 @@ class Stats():
         bin_width = (length_max - length_min)/bins # notice the use of parentheses
         print("bin width = ", bin_width, "nT")
 
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(15,15))
         fig.suptitle('Mag Signal Histogram')
         
         ax.hist(data.Mag_nT, bins=bins)

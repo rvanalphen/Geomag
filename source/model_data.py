@@ -1,13 +1,12 @@
 from pandas.core.frame import DataFrame
 from pydantic import BaseModel, validator
 from pathlib import Path, Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union,SupportsInt
 from pydantic.main import UNTOUCHED_TYPES
 from pyproj import CRS
 from pprint import pprint
 from math import cos, sin,pi,sqrt,log,atan2
 from source.load_data import path_to_df
-
 class PloufModel(BaseModel):
     line: DataFrame
     shapes: List[Union[Path,str]]
@@ -18,6 +17,7 @@ class PloufModel(BaseModel):
     intensity: Union[float,int]
     shape_dict: Dict = None
     results: Dict = {}
+    residuals: Dict = {}
 
     # no current pydantic way to validate dataframe
     class Config:
@@ -36,14 +36,14 @@ class PloufModel(BaseModel):
             raise TypeError("Top bounds %i must be an int" % bnd)
         return bnd
 
-    @validator('bottom_bound','inclination','declination',allow_reuse=True)
+    @validator('bottom_bound','inclination','declination')
     def other_validator(cls, num) -> int:
         if type(num) != int:
             raise TypeError("Value %i must be an int" % num)
         return num
 
     @validator('intensity')
-    def other_validator(cls, mi) -> Union[float,int]:
+    def int_validator(cls, mi) -> Union[float,int]:
         if type(mi) != float and type(mi) != int:
             raise TypeError("intensity must be an int or float")
         return mi
@@ -51,7 +51,7 @@ class PloufModel(BaseModel):
     @property
     def Parameters(self):
         pprint(self.dict(exclude={'line'},exclude_unset=True))
-    
+
     def _shapes_path_to_list(self):
         shape_d = {}
         for i,shape in enumerate(self.shapes):
@@ -200,7 +200,7 @@ class PloufModel(BaseModel):
             b_total_list.append(b_total)
 
         df_model['mag'] = b_total_list
-        df_model['dist'] = northing_list
+        df_model['ydist'] = northing_list
         df_model['xdist'] = easting_list
 
         # print(df_model)
@@ -231,5 +231,9 @@ class PloufModel(BaseModel):
         if len(self.results) > 1:
             for value in self.results.values():
                 pass
+        else:
+
+             self.residuals[model_num] = self.results[model_num].copy()
+             self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
 
         print('Model Made')

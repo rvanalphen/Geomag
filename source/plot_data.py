@@ -42,19 +42,19 @@ class DataPlotter:
                         linestyle='None', marker="o", ms=2)
                 ax.set_title(path+': all data')
             else:
-                print('convert to utm')
-                exit()
-
+                ax.plot(data.Long, data.Lat,
+                        linestyle='None', marker="o", ms=2)
+                ax.set_title(path+': all data')
             plt.show()
 
         else:
             data = application.lines
             for key in data:
                 ax.plot(data[key].Easting,data[key].Northing,
-                        linestyle='None', marker="o", ms=2)
+                        linestyle='None', marker="o", ms=2,label=key)
                 
                 ax.set_title(path+': all lines')
-
+                plt.legend(title = "Key/Line Names:",loc='lower right')
             plt.show()
 
 
@@ -129,7 +129,7 @@ class DataPlotter:
 
                 ax.set_title(path+' - Lines offset by: '+str(offset)+'nT')
 
-                ax.legend()
+                plt.legend(title = "Key/Line Names:",loc='lower right')
                 start_offset += offset
         else:
             for key in data:
@@ -141,7 +141,7 @@ class DataPlotter:
 
                 ax.set_title(path+' - Lines offset by: '+str(offset)+'nT')
 
-                ax.legend()
+                plt.legend(title = "Key/Line Names:",loc='lower right')
                 start_offset += offset
         plt.show()
 
@@ -153,22 +153,21 @@ class DataPlotter:
         ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
 
         for key in model.results.keys():
-            ax.plot(model.results[key].dist,model.results[key].mag,'r-',ms=2,label='Calculated')
+            ax.plot(model.results[key].ydist,model.results[key].mag,'r-',ms=2,label='Calculated')
 
         ax.set_xlabel('Horizontal distance north from line center')
         ax.set_ylabel('Magnetic Anomaly (nT)')
         ax.legend(loc='lower left')
         plt.show()
 
-    def plot_residuals(self,observed: MagApp, model: PloufModel,key_name='line 1') -> None:
-        observed = observed.lines[key_name]
+    def plot_residuals(self,model: PloufModel) -> None:
 
         fig, ax = plt.subplots(figsize=(10, 10))
 
         # ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
 
         for key in model.results.keys():
-            ax.plot(model.results[key].dist,model.results[key].mag-observed.Mag_nT,'r-',ms=2,label='Calculated')
+            ax.plot(model.residuals[key].ydist,model.residuals[key].mag,'k-',ms=2,label='residuals')
 
         ax.set_xlabel('Horizontal distance north from line center')
         ax.set_ylabel('Residuals (nT)')
@@ -485,9 +484,9 @@ class DataPlotter:
 
         plt.show()
         
-        print("\n")
-        q = input("save map? (y/n)")
+        # print("\n")
+        # q = input("save map? (y/n)")
 
-        if q == 'y':
-            name = input("save map as...:")
-            carto_fig.savefig(name)
+        # if q == 'y':
+        #     name = input("save map as...:")
+        #     carto_fig.savefig(name)

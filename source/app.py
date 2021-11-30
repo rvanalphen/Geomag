@@ -32,6 +32,7 @@ def _direction_lookup(destination_x: float, origin_x: float,
 
 class MagApp:
     def __init__(self, parameters: GeoMag = None,merged_patches: DataFrame = None) -> None:
+
         if parameters != None and merged_patches is None:
             self.parameters = parameters
             self.data: DataFrame = path_to_df(parameters.filepath)
@@ -58,13 +59,24 @@ class MagApp:
         
         pprint(print_dict)
 
-    def set_lines(self,data: DataFrame, key_name: str) -> None:
+    @property
+    def Attributes(self):
+        print("App Parameters:")
+        self.Parameters
+        print("\n")
+        print("File Data:")
+        self.Data
+        print("\n")
+        print("Data Separated into Lines")
+        self.Lines
+
+    def _set_lines(self,data: DataFrame, key_name: str) -> None:
         if not self.lines:
             self.lines = {}
         self.lines[key_name] = data
 
     def data_is_line(self):
-        self.set_lines(self.data,'line 1')
+        self._set_lines(self.data,'line 1')
 
     def transform_coords(self) -> List:
         in_crs = CRS.from_epsg(self.parameters.input_epsg)
@@ -99,11 +111,11 @@ class MagApp:
 
         if mode_heading < 44 or mode_heading > 316\
                 or (mode_heading > 136 and mode_heading < 224):
-            self.data['dir'] = 'NS'   
+            self.data['Dir'] = 'NS'   
             return NorthSouthCut()
 
         else:
-            self.data['dir'] = 'EW'   
+            self.data['Dir'] = 'EW'   
             return EastWestCut()
 
     def cut_data(self,buffer: int = 5) -> None:
@@ -150,6 +162,7 @@ class MagApp:
             self._update_data()
         else:
             self.lines = separation_strategy.split(self.data,line_params,buffer)
+            del self.data['geometry']
 
     def export_data(self,export_strategy: DataExporter,override_name: str = None):
         export_strategy.exporter(self.parameters.filepath,self.data,self.lines,override_name)

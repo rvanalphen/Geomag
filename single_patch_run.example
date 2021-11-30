@@ -47,7 +47,7 @@ def main():
         app.cut_data(buffer=5)
 
         # putting each objects data into a list for merging 
-        # if app.data.dir.values[0] =='NS':
+        # if app.data.Dir.values[0] =='NS':
         #     object_dict[KEY] = app.data
         object_dict[KEY] = app.data
     

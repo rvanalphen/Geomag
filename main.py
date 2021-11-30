@@ -52,19 +52,25 @@ def main():
     model = PloufModel(
         line = app.lines['line 1'],
         shapes= [Path(f'{SHAPE_DIR}/shape5.utm')],
-        top_bound= [40],
+        top_bound= [45],
         bottom_bound= 50,
         inclination= -67,
         declination= 177,
-        intensity= 0.5
+        intensity= 1
     )
 
-    model.run_plouf()
 
+    model.run_plouf()
+    rmse,norm_rmse = statter.rmse(app,model)
+        
     plotter.plot_model(app,model)
-    statter.ks_test(app,model)    
-    statter.rmse(app,model)
-    statter.chi_squared(app,model)
+    plotter.plot_residuals(model)
+    # print("RMSE: ",rmse)
+    # print("Norm RMSE: ", norm_rmse)
+    # statter.ks_test(app,model)
+    # statter.chi_squared(app,model)
+
+
 
 
 if __name__ == "__main__":

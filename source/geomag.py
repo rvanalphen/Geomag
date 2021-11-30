@@ -1,6 +1,7 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ValidationError
 from pathlib import Path
 from typing import List, Optional
+import pydantic
 from pyproj import CRS
 import string
 
@@ -19,9 +20,10 @@ class GeoMag(BaseModel):
                 'The file specified does not exist; check filepath')
         return f
 
-    @validator('input_epsg','output_epsg',allow_reuse=True)
+    @validator('input_epsg','output_epsg')
     def epsg_validator(cls, code) -> str:
         if not code.isdigit():
+            print("WOW")
             raise ValueError(
                 "EPSG: code must be a string of all numbers, example: '4326' ")
         
@@ -34,10 +36,10 @@ class GeoMag(BaseModel):
                 
         return dts
 
-    @validator('elevation',allow_reuse=True)
-    def epsg_validator(cls, elev) -> str:
+    @validator('elevation')
+    def elevation_validator(cls, elev) -> str:
         if not elev.isdigit():
-            raise ValueError(
+            raise TypeError(
                 "Elevation must be a digit of type str")
         
         return elev  
