@@ -101,15 +101,6 @@ class Stats():
 
         return chi2.ppf(1-conf, df)
 
-    def _chi_compare(self,chi2_value: Union[int,float], critical_value: Union[int,float]):
-
-        if chi2_value > critical_value or chi2_value < 0:
-            print( 'Chi2: %f > Critical Value: %f' % (chi2_value,critical_value))
-            print("Model is not a good fit")
-        else:
-            print( 'Chi2: %f < Critical Value: %f' % (chi2_value,critical_value))
-            print("Model is a good fit")
-
     def chi_squared(self,observed: MagApp, model: PloufModel,confidnece: int = 95,key_name='line 1'):
 
         observed = observed.lines[key_name].Mag_nT
@@ -118,7 +109,7 @@ class Stats():
         chi2_value,_ = chisquare(observed,model)
         critical_value = self._critical_value(observed,confidnece)
 
-        self._chi_compare(chi2_value,critical_value)
+        print( 'Chi2: %f, Critical Value: %f' % (chi2_value,critical_value))
 
     def rmse(self,observed: MagApp, model: PloufModel,key_name='line 1'):
 

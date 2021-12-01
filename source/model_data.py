@@ -228,12 +228,8 @@ class PloufModel(BaseModel):
             model_num = 'model {}'.format(i+1)
             self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
-        if len(self.results) > 1:
-            for value in self.results.values():
-                pass
-        else:
 
-             self.residuals[model_num] = self.results[model_num].copy()
-             self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
+            self.residuals[model_num] = self.results[model_num].copy()
+            self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
 
         print('Model Made')
