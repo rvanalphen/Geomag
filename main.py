@@ -59,39 +59,30 @@ def main():
         shape_data[key] = path_to_df(f)
 
 
-
-    # fig, ax = plt.subplots(figsize=(10, 10))
-
-    # ax.plot(app.data.Easting,app.data.Northing,linestyle='None', marker="o", ms=2,c="k", label="Data line")
-    # for key in shape_data.keys():
-    #     ax.plot(shape_data[key].Easting,shape_data[key].Northing,
-    #             linestyle='-', marker="o", ms=2,label=key)
-    # ax.legend()
-    # plt.show()
-
-
-
-
     model = PloufModel(
         line = app.lines['line 1'],
-        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape5.utm')],
-        top_bound= [42],
-        bottom_bound= 52,
+        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
+        top_bound= [40],
+        bottom_bound= 45,
         inclination= -67,
         declination= 177,
-        intensity= 0.6
+        intensity= 1
     )
 
 
     model.run_plouf()
-    # rmse,norm_rmse = statter.rmse(app,model)
-        
+
+
     plotter.plot_model(app,model)
     # plotter.plot_residuals(model)
+
+    # rmse,norm_rmse = statter.rmse(app,model)
     # print("RMSE: ",rmse)
-    # print("Norm RMSE: ", norm_rmse)
-    statter.ks_test(app,model)
-    # statter.chi_squared(app,model)
+    # print("Norm RMSE: ", norm_rmse,"\n")
+    
+    # statter.ks_test(app,model,bins=10)
+
+
 
 
 if __name__ == "__main__":

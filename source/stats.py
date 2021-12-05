@@ -1,80 +1,64 @@
-from typing import Union
 import matplotlib.pyplot as plt 
 from pandas.core.frame import DataFrame
 from source.model_data import PloufModel
-from numpy import histogram
-from typing import List
 from source.app import MagApp
 from numpy import linspace
 from math import sqrt
 from numpy import mean, std, var
-from scipy.stats import kurtosis,skew,chisquare,chi2
+from scipy.stats import kurtosis,skew
 from statsmodels.api import distributions
 
 class Stats():
 
-    def _ks_stats(self,length,y,y2):
+    def _ks_stats(self,dfree,y,y2):
 
         max_diff = abs(max(y-y2))
-
-        degrees_of_freedom = length
-        confidence_level = 1.36/sqrt(length)
+        confidence_level = 1.36/sqrt(dfree)
 
         df = DataFrame.from_dict(
                 {'max difference':[max_diff],
-                'degrees of freedom':[degrees_of_freedom],
+                'degrees of freedom':[dfree],
                 'at 95% confidence':[confidence_level]})
         
         print("\n Confidence Table:")
         print(df)
         return df 
 
-    def _plot_ks(self,x,y,y2,df):
+    def _plot_ks(self,x,y,x2,y2,df):
         # Initialize the vertical-offset for the stacked bar chart.
         
         fig, axs = plt.subplots(figsize=(10, 10))
 
         fig.suptitle('KS Test')
         axs.step(x, y)
-        axs.step(x, y2)
+        axs.step(x2, y2)
         axs.table(cellText=df.values, colLabels=df.columns,loc='top')
 
         plt.ylabel("Cumulative Probability")
-        plt.xlabel("nanoTesla")
+        plt.xlabel("bins (nT)")
         plt.show()
 
-    def ks_test(self,observed: MagApp, model: PloufModel,key_name='line 1'):
+    def ks_test(self,observed: MagApp, model: PloufModel,bins: int = 10, key_name='line 1'):
        
         model = model.results['model 1']
         observed = observed.lines[key_name]
         
+        dfree = len(observed)-1
+
         ecdf = distributions.ECDF(observed.Mag_nT)
         ecdf_model = distributions.ECDF(model.mag)
         
-        x = linspace(min(observed.Mag_nT.values), max(observed.Mag_nT.values))
+        x = linspace(min(observed.Mag_nT.values), max(observed.Mag_nT.values),bins)
+        x2 = linspace(min(model.mag.values), max(model.mag.values),bins)
+
+        print("Splitting data into {} bins".format(bins))
+
         y = ecdf(x)
-        y2= ecdf_model(x)
+        y2= ecdf_model(x2)
 
-        ks_stats = self._ks_stats(len(observed),y,y2)
+        ks_stats = self._ks_stats(dfree,y,y2)
         
-        self._plot_ks(x,y,y2,ks_stats)
-
-    def _critical_value(self,observed,confidnece):
-        
-        df = len(observed)-1
-        conf = (100-confidnece)/100
-
-        return chi2.ppf(1-conf, df)
-
-    def chi_squared(self,observed: MagApp, model: PloufModel,confidnece: int = 95,key_name='line 1'):
-
-        observed = observed.lines[key_name].Mag_nT
-        model = model.results['model 1'].mag
-
-        chi2_value,_ = chisquare(observed,model)
-        critical_value = self._critical_value(observed,confidnece)
-
-        print( 'Chi2: %f, Critical Value: %f' % (chi2_value,critical_value))
+        self._plot_ks(x,y,x2,y2,ks_stats)
 
     def rmse(self,observed: MagApp, model: PloufModel,key_name='line 1'):
 
