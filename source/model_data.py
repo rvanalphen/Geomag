@@ -105,7 +105,7 @@ class PloufModel(BaseModel):
         mz = self.intensity*mn
 
         # set earths field
-        einc = 61.6*(pi/180)
+        einc = 62*(pi/180)
         edec = 12*(pi/180)
 
         el = cos(einc) * cos(edec)

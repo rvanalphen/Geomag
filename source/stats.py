@@ -9,90 +9,55 @@ from numpy import linspace
 from math import sqrt
 from numpy import mean, std, var
 from scipy.stats import kurtosis,skew,chisquare,chi2
+from statsmodels.api import distributions
 
 class Stats():
 
-    def _make_bins(self,obs: DataFrame, calc: DataFrame, bins : List[Union[float,int]] = None) -> List:
-        if not bins:
-            bins = linspace(0,225,9)
-        
-        data_in_bins= histogram(round(abs(obs['Mag_nT']),2), bins)[0]
-        calc_in_bins= histogram(round(abs(calc['mag']),2), bins)[0]
+    def _ks_stats(self,length,y,y2):
 
-        bin_frequency = list(data_in_bins)
-        binned_data = list(bins[:-1])
+        max_diff = abs(max(y-y2))
 
-        return calc_in_bins,bin_frequency,binned_data
-
-
-    def _ks_stats(self,binned_data,normal_ecdf,model_cdf,all_observations):
-        diff = []
-        for i in range (len(binned_data)):
-            diff.append(normal_ecdf[i]-model_cdf[i])
-
-        max_diff = abs(max(diff))
-        degrees_of_freedom = all_observations
-        confidence_level = 1.36/sqrt(all_observations)
-        conficence_level90 = 1.22/sqrt(all_observations)
+        degrees_of_freedom = length
+        confidence_level = 1.36/sqrt(length)
 
         df = DataFrame.from_dict(
                 {'max difference':[max_diff],
                 'degrees of freedom':[degrees_of_freedom],
-                'at 95% confidence':[confidence_level],
-                'at 90% confidence':[conficence_level90]}
-                )
+                'at 95% confidence':[confidence_level]})
         
+        print("\n Confidence Table:")
+        print(df)
         return df 
 
-    def _plot_ks(self,step,step_normal_ecdf,step_model_cdf,df):
+    def _plot_ks(self,x,y,y2,df):
         # Initialize the vertical-offset for the stacked bar chart.
         
         fig, axs = plt.subplots(figsize=(10, 10))
 
         fig.suptitle('KS Test')
-        axs.plot(step, step_normal_ecdf)
-        axs.plot(step, step_model_cdf)
+        axs.step(x, y)
+        axs.step(x, y2)
         axs.table(cellText=df.values, colLabels=df.columns,loc='top')
 
         plt.ylabel("Cumulative Probability")
-        plt.xlabel("Bins")
+        plt.xlabel("nanoTesla")
         plt.show()
 
-    def ks_test(self,observed: MagApp, model: PloufModel,bins : List[Union[float,int]] = None,key_name='line 1'):
+    def ks_test(self,observed: MagApp, model: PloufModel,key_name='line 1'):
        
         model = model.results['model 1']
         observed = observed.lines[key_name]
         
-        calc_in_bins,bin_frequency,binned_data = self._make_bins(observed,model)
+        ecdf = distributions.ECDF(observed.Mag_nT)
+        ecdf_model = distributions.ECDF(model.mag)
         
-        all_observations = sum(bin_frequency)
-        model_bin_frequency =calc_in_bins
+        x = linspace(min(observed.Mag_nT.values), max(observed.Mag_nT.values))
+        y = ecdf(x)
+        y2= ecdf_model(x)
 
-        running_total = 0
-        step_normal_ecdf = []
-        normal_ecdf = []
-        model_running_total = 0
-        model_cdf = []
-        step_model_cdf = []
-        step =[]
-
-        for i in range (len(binned_data)):
-            running_total += bin_frequency[i]/all_observations
-            step.append(binned_data[i] - 5)
-            step.append(binned_data[i] + 5)
-            normal_ecdf.append(running_total)
-            
-            step_normal_ecdf.append(running_total)
-            step_normal_ecdf.append(running_total)
-            
-            model_running_total += model_bin_frequency[i]/all_observations
-            model_cdf.append(model_running_total)
-            step_model_cdf.append(model_running_total)
-            step_model_cdf.append(model_running_total)
+        ks_stats = self._ks_stats(len(observed),y,y2)
         
-        ks_stats = self._ks_stats(binned_data,normal_ecdf,model_cdf,all_observations)
-        
-        self._plot_ks(step,step_normal_ecdf,step_model_cdf,ks_stats)
+        self._plot_ks(x,y,y2,ks_stats)
 
     def _critical_value(self,observed,confidnece):
         

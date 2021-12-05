@@ -19,10 +19,10 @@ from source.stats import Stats
 #TODO write plotting function to show cut line and shape
 ######################## - INPUTS - #############################
 
-DATA_DIR = '/home/robert/DataStorage/Amargosa/rawdata/patches/cleaned_data/cleaned_lines/'
+DATA_DIR = '/home/robert/Codes/pycodes/geomag/'
 SHAPE_DIR = '/home/robert/Codes/pycodes/geomag/shapes/'
 
-FILE = Path(f'{DATA_DIR}/All_NS_processedOn_2021_11_17_line 1_processedOn_2021_11_29.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# north - south lines
 # FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
 # INEPSG = '4326'
 # OUTEPSG = '32611'
@@ -49,28 +49,49 @@ def main():
     statter = Stats()
 
 
+    from source.helper_functions import files_to_dict
+    from source.load_data import path_to_df
+
+    shape_files = files_to_dict(SHAPE_DIR)
+
+    shape_data={}
+    for key,f in shape_files.items():
+        shape_data[key] = path_to_df(f)
+
+
+
+    # fig, ax = plt.subplots(figsize=(10, 10))
+
+    # ax.plot(app.data.Easting,app.data.Northing,linestyle='None', marker="o", ms=2,c="k", label="Data line")
+    # for key in shape_data.keys():
+    #     ax.plot(shape_data[key].Easting,shape_data[key].Northing,
+    #             linestyle='-', marker="o", ms=2,label=key)
+    # ax.legend()
+    # plt.show()
+
+
+
+
     model = PloufModel(
         line = app.lines['line 1'],
-        shapes= [Path(f'{SHAPE_DIR}/shape5.utm')],
-        top_bound= [45],
-        bottom_bound= 50,
+        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape5.utm')],
+        top_bound= [42],
+        bottom_bound= 52,
         inclination= -67,
         declination= 177,
-        intensity= 1
+        intensity= 0.6
     )
 
 
     model.run_plouf()
-    rmse,norm_rmse = statter.rmse(app,model)
+    # rmse,norm_rmse = statter.rmse(app,model)
         
     plotter.plot_model(app,model)
-    plotter.plot_residuals(model)
+    # plotter.plot_residuals(model)
     # print("RMSE: ",rmse)
     # print("Norm RMSE: ", norm_rmse)
-    # statter.ks_test(app,model)
+    statter.ks_test(app,model)
     # statter.chi_squared(app,model)
-
-
 
 
 if __name__ == "__main__":
@@ -79,3 +100,4 @@ if __name__ == "__main__":
     main()
     stop = timeit.default_timer()
     print('\n Data Processed in %f second(s)' % (stop - start))
+# %%
