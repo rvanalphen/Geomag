@@ -1,19 +1,19 @@
 
 #%%
+import math
 from re import L
 import timeit   
 from pathlib import Path
 
 import pandas
 from source.correct_data import NorthSouthDetrend
-
-from source.plot_data import DataPlotter
+from source.plot_data import plot_model,plot_residuals
 from source.geomag import GeoMag
 from source.app import MagApp
 from source.model_data import PloufModel
+from source.stats import get_rmse,ks_test
 import matplotlib.pyplot as plt
-from source.stats import Stats
-
+from sklearn.model_selection import ParameterGrid
 #TODO fix recursive folder creation
 #TODO write plotting functions to show cut line compared to whole
 #TODO write plotting function to show cut line and shape
@@ -45,19 +45,6 @@ def main():
     app = MagApp(parameters = geomag)
     app.data_is_line()
 
-    plotter = DataPlotter()
-    statter = Stats()
-
-
-    from source.helper_functions import files_to_dict
-    from source.load_data import path_to_df
-
-    shape_files = files_to_dict(SHAPE_DIR)
-
-    shape_data={}
-    for key,f in shape_files.items():
-        shape_data[key] = path_to_df(f)
-
 
     model = PloufModel(
         line = app.lines['line 1'],
@@ -73,14 +60,18 @@ def main():
     model.run_plouf()
 
 
-    plotter.plot_model(app,model)
-    # plotter.plot_residuals(model)
+    # plot_model(app,model)
+    # plot_residuals(model)
 
-    # rmse,norm_rmse = statter.rmse(app,model)
+    # rmse,norm_rmse = get_rmse(app,model)
     # print("RMSE: ",rmse)
     # print("Norm RMSE: ", norm_rmse,"\n")
-    
-    # statter.ks_test(app,model,bins=10)
+    # from sklearn.metrics import max_error,classification_report
+    # me = max_error(app.lines['line 1'].Mag_nT,model.results['model 1'].mag)
+    # print(me)
+
+
+    # ks_test(app,model,bins=10)
 
 
 

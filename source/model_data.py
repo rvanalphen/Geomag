@@ -16,8 +16,8 @@ class PloufModel(BaseModel):
     declination: int
     intensity: Union[float,int]
     shape_dict: Dict = None
-    results: Dict = {}
-    residuals: Dict = {}
+    results: Dict[str,DataFrame] = {}
+    residuals: Dict[str,DataFrame] = {}
 
     # no current pydantic way to validate dataframe
     class Config:
@@ -226,6 +226,7 @@ class PloufModel(BaseModel):
             shapez = self.top_bound[i]
 
             model_num = 'model {}'.format(i+1)
+            
             self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
 
