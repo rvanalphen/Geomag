@@ -16,8 +16,8 @@ class PloufModel(BaseModel):
     declination: int
     intensity: Union[float,int]
     shape_dict: Dict = None
-    results: DataFrame = {}
-    residuals: DataFrame = {}
+    results: Dict[str,DataFrame] = {}
+    residuals: Dict[str,DataFrame]  = {}
 
     # no current pydantic way to validate dataframe
     class Config:
@@ -227,10 +227,10 @@ class PloufModel(BaseModel):
 
             model_num = 'model {}'.format(i+1)
             
-            self.results = self.plouf(shapex,shapey,shapez)
+            self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
 
-            self.residuals = self.results.copy()
-            self.residuals["mag"] = (self.line.Mag_nT - self.results.mag)
+            self.residuals[model_num] = self.results[model_num].copy()
+            self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
 
         print('Model Made')

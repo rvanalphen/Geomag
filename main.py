@@ -4,7 +4,6 @@ import math
 from re import L
 import timeit   
 from pathlib import Path
-from numpy import mod
 
 import pandas
 from source.correct_data import NorthSouthDetrend
@@ -46,39 +45,37 @@ def main():
     app = MagApp(parameters = geomag)
     app.data_is_line()
 
+    line = app.lines['line 1']
 
-    param_grid = {
-        'top':[[42],[40],[41],[43],[44],[45]],
-        'bottom':[50,51,52,53,54,55],
-        'intensity':[0.5,0.6,0.7,0.8,0.9,1]
-        }
+    model = PloufModel(
+        line = line,
+        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
+        top_bound= [40],
+        bottom_bound= 50,
+        inclination= -67,
+        declination= 177,
+        intensity= 1
+    )
 
-    grid_search = ParameterGrid(param_grid)
-    print(len(list(grid_search)))
+
+    model.run_plouf()
+    print(model.results)
+    plot_model(app,model)
+
+    model = PloufModel(
+        line = app.lines['line 1'],
+        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
+        top_bound= [45],
+        bottom_bound= 55,
+        inclination= -67,
+        declination= 177,
+        intensity= 1
+    )
 
 
-    all_models = []
-    for i,grid in enumerate(grid_search):
-        if i < 3:
-
-            model = PloufModel(
-                line = app.lines['line 1'],
-                shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
-                top_bound= grid['top'],
-                bottom_bound= grid['bottom'],
-                inclination= -67,
-                declination= 177,
-                intensity= grid['intensity']
-            )
-
-            all_models.append(model)
-
-    for model in all_models:
-
-        print(model.Parameters)
-        model.run_plouf()
-
-        # print(grid)
+    model.run_plouf()
+    print(model.results)
+    plot_model(app,model)
 
 
 if __name__ == "__main__":
