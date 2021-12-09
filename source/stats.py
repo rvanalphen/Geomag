@@ -19,7 +19,7 @@ def _ks_stats(dfree,y,y2):
             'degrees of freedom':[dfree],
             'at 95% confidence':[confidence_level]})
     
-    print("\n Confidence Table:")
+    print("Confidence Table:")
     print(df)
     return df 
 
@@ -39,7 +39,7 @@ def _plot_ks(x,y,x2,y2,df):
 
 def ks_test(observed: MagApp, model: PloufModel,bins: int = 10, key_name='line 1'):
     
-    model = model.results['model 1']
+    model = model.results
     observed = observed.lines[key_name]
     
     dfree = len(observed)-1
@@ -50,7 +50,7 @@ def ks_test(observed: MagApp, model: PloufModel,bins: int = 10, key_name='line 1
     x = linspace(min(observed.Mag_nT.values), max(observed.Mag_nT.values),bins)
     x2 = linspace(min(model.mag.values), max(model.mag.values),bins)
 
-    print("Splitting data into {} bins".format(bins))
+    print("\n Splitting data into {} bins".format(bins))
 
     y = ecdf(x)
     y2= ecdf_model(x2)
@@ -61,12 +61,12 @@ def ks_test(observed: MagApp, model: PloufModel,bins: int = 10, key_name='line 1
 
 def get_rmse(model: PloufModel):
 
-    return sqrt(((model.residuals['model 1'].mag) ** 2).mean())
+    return sqrt(((model.residuals.mag) ** 2).mean())
 
 
 def get_abs_max_error(model: PloufModel):
     
-    return abs(model.residuals['model 1'].mag).max()
+    return abs(model.residuals.mag).max()
 
 
 def get_stats(app: MagApp,bins=50):

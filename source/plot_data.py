@@ -148,7 +148,7 @@ def plot_model(observed: MagApp, model: PloufModel,key_name='line 1') -> None:
 
     ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
 
-    ax.plot(model.results['model 1'].ydist,model.results['model 1'].mag,'r-',ms=2,label='Calculated')
+    ax.plot(model.results.ydist,model.results.mag,'r-',ms=2,label='Calculated')
 
     ax.set_xlabel('Horizontal distance north from line center')
     ax.set_ylabel('Magnetic Anomaly (nT)')
@@ -159,10 +159,8 @@ def plot_residuals(model: PloufModel) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 10))
 
-    # ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
 
-    for key in model.results.keys():
-        ax.plot(model.residuals[key].ydist,model.residuals[key].mag,'k-',ms=2,label='residuals')
+    ax.plot(model.residuals.ydist,model.residuals.mag,'k-',ms=2,label='residuals')
 
     ax.set_xlabel('Horizontal distance north from line center')
     ax.set_ylabel('Residuals (nT)')

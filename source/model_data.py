@@ -1,10 +1,10 @@
 from pandas.core.frame import DataFrame
-from pydantic import BaseModel, validator
-from typing import Dict, List, Union,Callable
+from typing import Dict,Callable
 from pprint import pprint
 from math import cos, sin,pi,sqrt,log,atan2
 from sklearn.model_selection import ParameterGrid
 from source.helper_functions import progress_bar
+from source.load_data import path_to_df
 
 def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_func: Callable):
 
@@ -35,42 +35,25 @@ def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_
     
     return current,good_grid
 
-class PloufModel(BaseModel):
-    line: DataFrame
-    shape: DataFrame
-    top_bound: float
-    bottom_bound: int
-    inclination: int
-    declination: int
-    intensity: Union[float,int]
-    results: Dict[str,DataFrame] = {}
-    residuals: Dict[str,DataFrame]  = {}
+class PloufModel():
 
-    # no current pydantic way to validate dataframe
-    class Config:
-        arbitrary_types_allowed = True
-
-    @validator('top_bound',each_item=True)
-    def top_validator(cls,bnd):
-        if type(bnd) != float and type(bnd) != int:
-            raise TypeError("Top bounds %i must be an int" % bnd)
-        return bnd
-
-    @validator('bottom_bound','inclination','declination')
-    def other_validator(cls, num) -> int:
-        if type(num) != int:
-            raise TypeError("Value %i must be an int" % num)
-        return num
-
-    @validator('intensity')
-    def int_validator(cls, mi) -> Union[float,int]:
-        if type(mi) != float and type(mi) != int:
-            raise TypeError("intensity must be an int or float")
-        return mi
+    def __init__(self,line: DataFrame,shape: DataFrame,
+                    top_bound: float,bottom_bound: float,inclination: float,
+                        declination: float,intensity: float) -> None:
+        
+        self.line = line 
+        self.shape = shape
+        self.top_bound = top_bound
+        self.bottom_bound = bottom_bound
+        self.inclination = inclination
+        self.declination = declination
+        self.intensity = intensity
+        self.results: DataFrame = {}
+        self.residuals: DataFrame  = {}
 
     @property
     def Parameters(self):
-        pprint(self.dict(exclude={'line'},exclude_unset=True))
+        pprint(self.__dict__)
 
     def _center_line(self,x0: int, y0: int):
 
@@ -231,9 +214,9 @@ class PloufModel(BaseModel):
 
         shapey = self.shape.Easting.tolist()
 
-        self.results['model 1'] = self.plouf(shapex,shapey,self.top_bound)
+        self.results= self.plouf(shapex,shapey,self.top_bound)
 
-        self.residuals['model 1'] = self.results['model 1'].copy()
-        self.residuals['model 1']["mag"] = (self.line.Mag_nT - self.results['model 1'].mag)
+        self.residuals = self.results.copy()
+        self.residuals["mag"] = (self.line.Mag_nT - self.results.mag)
 
         # print('Model Made')

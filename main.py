@@ -7,6 +7,7 @@ from source.geomag import GeoMag
 from source.app import MagApp
 from source.model_data import PloufModel
 from source.stats import get_abs_max_error, get_rmse,ks_test
+from pprint import pprint
 #TODO fix recursive folder creation
 #TODO write plotting functions to show cut line compared to whole
 #TODO write plotting function to show cut line and shape
@@ -37,9 +38,10 @@ def main():
     app.data_is_line()
 
     line = app.lines['line 1']
-    
-    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
-    
+
+    shape= path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
+
+        
     grid_model = PloufModel(
         line = line,
         shape= shape,
@@ -52,9 +54,8 @@ def main():
 
     grid_model.run_plouf()
 
-
-    print(get_abs_max_error(grid_model))
-    print(get_rmse(grid_model))
+    print("Absolute Max Error: %f" % get_abs_max_error(grid_model))
+    print("RMSE: %f" % get_rmse(grid_model))
 
     plot_model(app,grid_model)
     plot_residuals(grid_model)
