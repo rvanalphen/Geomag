@@ -9,13 +9,13 @@ from math import cos, sin,pi,sqrt,log,atan2
 from source.load_data import path_to_df
 class PloufModel(BaseModel):
     line: DataFrame
-    shapes: List[Union[Path,str]]
+    # shapes: DataFrame
     top_bound: List[Union[float,int]]
     bottom_bound: int
     inclination: int
     declination: int
     intensity: Union[float,int]
-    shape_dict: Dict = None
+    shape_dict: Dict[str,DataFrame]
     results: Dict[str,DataFrame] = {}
     residuals: Dict[str,DataFrame]  = {}
 
@@ -23,12 +23,12 @@ class PloufModel(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @validator('shapes',each_item=True)
-    def path_validator(cls, f) -> Path:
-        if not f.is_file():
-            raise AttributeError(
-                'The file specified does not exist; check filepath')
-        return f
+    # @validator('shapes',each_item=True)
+    # def path_validator(cls, f) -> Path:
+    #     if not f.is_file():
+    #         raise AttributeError(
+    #             'The file specified does not exist; check filepath')
+    #     return f
 
     @validator('top_bound',each_item=True)
     def top_validator(cls,bnd):
@@ -52,13 +52,13 @@ class PloufModel(BaseModel):
     def Parameters(self):
         pprint(self.dict(exclude={'line'},exclude_unset=True))
 
-    def _shapes_path_to_list(self):
-        shape_d = {}
-        for i,shape in enumerate(self.shapes):
-            name = 'shape %i' % (i+1)
-            shape_d[name] = path_to_df(shape)
+    # def _shapes_path_to_list(self):
+    #     shape_d = {}
+    #     for i,shape in enumerate(self.shapes):
+    #         name = 'shape %i' % (i+1)
+    #         shape_d[name] = path_to_df(shape)
 
-        self.shape_dict = shape_d
+    #     self.shape_dict = shape_d
 
     def _center_line(self,x0: int, y0: int):
 
@@ -78,9 +78,9 @@ class PloufModel(BaseModel):
         self.shape_dict = self.shape_dict
 
     def plouf(self,X,Y,z1):
-
+ 
         #Setting Parameters
-        print('Running Plouf...')
+        # print('Running Plouf...')
         x = X
         y = Y
         z2 = self.bottom_bound
@@ -100,6 +100,7 @@ class PloufModel(BaseModel):
         mn = sin(minc)
 
         #components of magnetization in x,y,z, directions
+
         mx = self.intensity*ml
         my = self.intensity*mm
         mz = self.intensity*mn
@@ -127,7 +128,7 @@ class PloufModel(BaseModel):
             #northing and easting observation points 
             px = j
             py = k
-
+            
             #setting volume integral to zero 
             v1 = 0
             v2 = 0
@@ -185,7 +186,7 @@ class PloufModel(BaseModel):
                 v4 += -(s*c*f + s*s*w)
                 v5 += -(s*q)
                 v6 += w
-                
+
             #calculate the components of the magnetic field 
             bx = prop*(mx*v1 + my*v2 + mz* v3);
             by = prop*(mx*v2 + my*v4 + mz* v5);
@@ -194,7 +195,7 @@ class PloufModel(BaseModel):
             #calculate total anomaly
             #this calculation works for anomaly << total field strength
             b_total = el*bx + em*by + en*bz
-        
+            
             northing_list.append(px)       
             easting_list.append(py)         
             b_total_list.append(b_total)
@@ -202,8 +203,6 @@ class PloufModel(BaseModel):
         df_model['mag'] = b_total_list
         df_model['ydist'] = northing_list
         df_model['xdist'] = easting_list
-
-        # print(df_model)
 
         return df_model
 
@@ -213,7 +212,7 @@ class PloufModel(BaseModel):
         x0 = self.line.Northing.median() 
         y0 = self.line.Easting.median()
 
-        self._shapes_path_to_list()
+        # self._shapes_path_to_list()
         self._center_line(x0,y0)
         self._center_shapes(x0,y0)
 
@@ -226,11 +225,10 @@ class PloufModel(BaseModel):
             shapez = self.top_bound[i]
 
             model_num = 'model {}'.format(i+1)
-            
-            self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
+            self.results[model_num] = self.plouf(shapex,shapey,shapez)
 
             self.residuals[model_num] = self.results[model_num].copy()
             self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
 
-        print('Model Made')
+        # print('Model Made')

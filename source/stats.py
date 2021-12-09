@@ -4,7 +4,7 @@ from source.model_data import PloufModel
 from source.app import MagApp
 from numpy import linspace
 from math import sqrt
-from numpy import mean, std, var
+from numpy import mean, std, var,array
 from scipy.stats import kurtosis,skew
 from statsmodels.api import distributions
 
@@ -59,16 +59,14 @@ def ks_test(observed: MagApp, model: PloufModel,bins: int = 10, key_name='line 1
     
     _plot_ks(x,y,x2,y2,ks_stats)
 
-def get_rmse(observed: MagApp, model: PloufModel,key_name='line 1'):
+def get_rmse(model: PloufModel):
 
-    observed = observed.lines[key_name].Mag_nT
-    model = model.results['model 1'].mag
+    return sqrt(((model.residuals['model 1'].mag) ** 2).mean())
 
-    rmse = sqrt(((model - observed) ** 2).mean())
+
+def get_abs_max_error(model: PloufModel):
     
-    norm_rmse = rmse / (observed.max()-observed.min()) 
-
-    return rmse,norm_rmse
+    return abs(model.residuals['model 1'].mag).max()
 
 
 def get_stats(app: MagApp,bins=50):

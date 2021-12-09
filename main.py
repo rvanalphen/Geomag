@@ -1,5 +1,4 @@
 
-#%%
 import math
 from re import L
 import timeit   
@@ -7,13 +6,16 @@ from pathlib import Path
 
 import pandas
 from source.correct_data import NorthSouthDetrend
+from source.helper_functions import progress_bar
+from source.load_data import path_to_df
 from source.plot_data import plot_model,plot_residuals
 from source.geomag import GeoMag
 from source.app import MagApp
 from source.model_data import PloufModel
-from source.stats import get_rmse,ks_test
+from source.stats import get_abs_max_error, get_rmse,ks_test
 import matplotlib.pyplot as plt
 from sklearn.model_selection import ParameterGrid
+from sklearn.metrics import max_error,mean_squared_error
 #TODO fix recursive folder creation
 #TODO write plotting functions to show cut line compared to whole
 #TODO write plotting function to show cut line and shape
@@ -31,7 +33,15 @@ FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# no
 
 ######################### - Main - ###############################
 
-#%%
+import sys
+def progressBar(Index,EndNum,TotalPoints):
+    bar_len = 60
+    filled_len = int(round(bar_len * Index / float(EndNum)))
+    status = 'Running grid of length: {}'.format(f'{TotalPoints:,d}')
+    percents = round(100.0*Index/float(EndNum),1)
+    bar = chr(9608) * filled_len + '-' * (bar_len - filled_len)
+    sys.stdout.write(' [%s] %s%s ...%s\r' % (bar, percents, '%', status))
+    sys.stdout.flush()
 
 def main():
 
@@ -46,36 +56,67 @@ def main():
     app.data_is_line()
 
     line = app.lines['line 1']
+    
+    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
+    
+    
+    param_grid = {
+        'top':[[42],[40],[41],[43],[44],[45]],
+        'bottom':[50,51,52,53,54,55],
+        'intensity':[0.5,0.6,0.7,0.8,0.9,1]
+        }
 
-    model = PloufModel(
+    grid_search = ParameterGrid(param_grid)
+    grid_len = len(list(grid_search))
+
+    current = 1000
+    for i,grid in enumerate(grid_search):
+            progress_bar(i,grid_len)
+            
+            model = PloufModel(
+                line = line,
+                shape_dict= {'shape 1':shape},
+                top_bound= grid['top'],
+                bottom_bound= grid['bottom'],
+                inclination= -67,
+                declination= 177,
+                intensity= grid['intensity']
+            )
+
+            model.run_plouf()
+
+            error = get_rmse(model)
+            
+            if error < current:
+                current = error
+                good_grid = grid
+    
+    print("\n")
+    print('Final Grid: ',good_grid)
+    print('Final Model RMSE: ',current)
+
+
+    grid_model = PloufModel(
         line = line,
-        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
-        top_bound= [40],
-        bottom_bound= 50,
+        shape_dict= {'shape 1':shape},
+        top_bound= good_grid['top'],
+        bottom_bound= good_grid['bottom'],
         inclination= -67,
         declination= 177,
-        intensity= 1
+        intensity= good_grid['intensity']
     )
 
-
-    model.run_plouf()
-    print(model.results)
-    plot_model(app,model)
-
-    model = PloufModel(
-        line = app.lines['line 1'],
-        shapes= [Path(f'{SHAPE_DIR}/line_56a_shape2.utm')],
-        top_bound= [45],
-        bottom_bound= 55,
-        inclination= -67,
-        declination= 177,
-        intensity= 1
-    )
+    grid_model.run_plouf()
 
 
-    model.run_plouf()
-    print(model.results)
-    plot_model(app,model)
+    print(get_abs_max_error(grid_model))
+    print(get_rmse(grid_model))
+
+    plot_model(app,grid_model)
+    # plot_residuals(grid_model)
+    # ks_test(app,grid_model,bins=10)
+
+# {'bottom': 53, 'intensity': 0.8, 'top': [45]}
 
 
 if __name__ == "__main__":
@@ -84,4 +125,4 @@ if __name__ == "__main__":
     main()
     stop = timeit.default_timer()
     print('\n Data Processed in %f second(s)' % (stop - start))
-# %%
+
