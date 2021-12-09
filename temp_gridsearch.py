@@ -5,7 +5,7 @@ from source.load_data import path_to_df
 from source.plot_data import plot_model,plot_residuals
 from source.geomag import GeoMag
 from source.app import MagApp
-from source.model_data import PloufModel
+from source.model_data import PloufModel,grid_search
 from source.stats import get_abs_max_error, get_rmse,ks_test
 #TODO fix recursive folder creation
 #TODO write plotting functions to show cut line compared to whole
@@ -40,14 +40,27 @@ def main():
     
     shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
     
+    
+    param_grid = {
+        'top':[42,40,41,43,44,45],
+        'bottom':[50,51,52,53,54,55],
+        'intensity':[0.5,0.6,0.7,0.8,0.9,1]
+        }
+    
+    current,good_grid = grid_search(line,shape,param_grid,get_rmse)
+    print("\n")
+    print('Final Grid: ',good_grid)
+    print('Final Model RMSE: ',current)
+
+
     grid_model = PloufModel(
         line = line,
         shape= shape,
-        top_bound= 45,
-        bottom_bound= 53,
+        top_bound= good_grid['top'],
+        bottom_bound= good_grid['bottom'],
         inclination= -67,
         declination= 177,
-        intensity= 0.7
+        intensity= good_grid['intensity']
     )
 
     grid_model.run_plouf()
@@ -59,6 +72,8 @@ def main():
     plot_model(app,grid_model)
     plot_residuals(grid_model)
     ks_test(app,grid_model,bins=10)
+
+# {'bottom': 53, 'intensity': 0.8, 'top': [45]}
 
 
 if __name__ == "__main__":

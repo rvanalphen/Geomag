@@ -29,7 +29,7 @@ def merge_object_data(dictionary: Dict) -> DataFrame:
 def progress_bar(Index:int,EndNum:int):
     bar_len = 60
     filled_len = int(round(bar_len * Index / float(EndNum)))
-    status = 'Running grid of length: {}'.format(f'{EndNum:,d}')
+    status = 'Running Loop of length: {}'.format(f'{EndNum:,d}')
     percents = round(100.0*Index/float(EndNum),1)
     bar = chr(9608) * filled_len + '-' * (bar_len - filled_len)
     stdout.write(' [%s] %s%s ...%s\r' % (bar, percents, '%', status))

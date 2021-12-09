@@ -1,34 +1,54 @@
 from pandas.core.frame import DataFrame
 from pydantic import BaseModel, validator
-from pathlib import Path, Path
-from typing import Dict, List, Union,SupportsInt
-from pydantic.main import UNTOUCHED_TYPES
-from pyproj import CRS
+from typing import Dict, List, Union,Callable
 from pprint import pprint
 from math import cos, sin,pi,sqrt,log,atan2
-from source.load_data import path_to_df
+from sklearn.model_selection import ParameterGrid
+from source.helper_functions import progress_bar
+
+def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_func: Callable):
+
+    grid_search = ParameterGrid(parameter_dict)
+    grid_len = len(list(grid_search))
+
+    current = 1000
+    for i,grid in enumerate(grid_search):
+            progress_bar(i,grid_len)
+            
+            model = PloufModel(
+                line = obserced,
+                shape= shape,
+                top_bound= grid['top'],
+                bottom_bound= grid['bottom'],
+                inclination= -67,
+                declination= 177,
+                intensity= grid['intensity']
+            )
+
+            model.run_plouf()
+
+            error = error_func(model)
+            
+            if error < current:
+                current = error
+                good_grid = grid
+    
+    return current,good_grid
+
 class PloufModel(BaseModel):
     line: DataFrame
-    # shapes: DataFrame
-    top_bound: List[Union[float,int]]
+    shape: DataFrame
+    top_bound: float
     bottom_bound: int
     inclination: int
     declination: int
     intensity: Union[float,int]
-    shape_dict: Dict[str,DataFrame]
     results: Dict[str,DataFrame] = {}
     residuals: Dict[str,DataFrame]  = {}
 
     # no current pydantic way to validate dataframe
     class Config:
         arbitrary_types_allowed = True
-
-    # @validator('shapes',each_item=True)
-    # def path_validator(cls, f) -> Path:
-    #     if not f.is_file():
-    #         raise AttributeError(
-    #             'The file specified does not exist; check filepath')
-    #     return f
 
     @validator('top_bound',each_item=True)
     def top_validator(cls,bnd):
@@ -52,14 +72,6 @@ class PloufModel(BaseModel):
     def Parameters(self):
         pprint(self.dict(exclude={'line'},exclude_unset=True))
 
-    # def _shapes_path_to_list(self):
-    #     shape_d = {}
-    #     for i,shape in enumerate(self.shapes):
-    #         name = 'shape %i' % (i+1)
-    #         shape_d[name] = path_to_df(shape)
-
-    #     self.shape_dict = shape_d
-
     def _center_line(self,x0: int, y0: int):
 
         #Centering data around the middle of Survey Line  
@@ -71,11 +83,10 @@ class PloufModel(BaseModel):
 
     def _center_shapes(self,x0: int, y0: int):
 
-        for key in self.shape_dict.keys():
-            self.shape_dict[key]['Northing'] -= x0
-            self.shape_dict[key]['Easting'] -= y0
+        self.shape['Northing'] -= x0
+        self.shape['Easting'] -= y0
 
-        self.shape_dict = self.shape_dict
+        self.shape = self.shape
 
     def plouf(self,X,Y,z1):
  
@@ -216,19 +227,13 @@ class PloufModel(BaseModel):
         self._center_line(x0,y0)
         self._center_shapes(x0,y0)
 
-        for i, (key,_) in enumerate(self.shape_dict.items()):
+        shapex = self.shape.Northing.tolist()
 
-            shapex = self.shape_dict[key].Northing.tolist()
+        shapey = self.shape.Easting.tolist()
 
-            shapey = self.shape_dict[key].Easting.tolist()
+        self.results['model 1'] = self.plouf(shapex,shapey,self.top_bound)
 
-            shapez = self.top_bound[i]
-
-            model_num = 'model {}'.format(i+1)
-
-            self.results[model_num] = self.plouf(shapex,shapey,shapez)
-
-            self.residuals[model_num] = self.results[model_num].copy()
-            self.residuals[model_num]["mag"] = (self.line.Mag_nT - self.results[model_num].mag)
+        self.residuals['model 1'] = self.results['model 1'].copy()
+        self.residuals['model 1']["mag"] = (self.line.Mag_nT - self.results['model 1'].mag)
 
         # print('Model Made')
