@@ -4,10 +4,10 @@ from source.model_data import PloufModel
 from source.app import MagApp
 from numpy import linspace
 from math import sqrt
-from numpy import mean, std, var,array
+from numpy import mean, std, var
 from scipy.stats import kurtosis,skew
 from statsmodels.api import distributions
-
+from statsmodels.stats.stattools import durbin_watson
 
 def _ks_stats(dfree,y,y2):
 
@@ -68,6 +68,9 @@ def get_abs_max_error(model: PloufModel):
     
     return abs(model.residuals.mag).max()
 
+def get_durban_watson(model: PloufModel):
+    
+    return durbin_watson(model.residuals.mag)
 
 def get_stats(app: MagApp,bins=50):
     data = app.data.copy()

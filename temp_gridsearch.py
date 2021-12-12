@@ -6,7 +6,7 @@ from source.plot_data import plot_model,plot_residuals
 from source.geomag import GeoMag
 from source.app import MagApp
 from source.model_data import PloufModel,grid_search
-from source.stats import get_abs_max_error, get_rmse,ks_test
+from source.stats import get_abs_max_error, get_rmse,ks_test,get_durban_watson
 #TODO fix recursive folder creation
 #TODO write plotting functions to show cut line compared to whole
 #TODO write plotting function to show cut line and shape
@@ -38,7 +38,7 @@ def main():
 
     line = app.lines['line 1']
     
-    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape5.utm'))
+    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
     
     
     param_grid = {
@@ -47,10 +47,10 @@ def main():
         'intensity':[0.5,0.6,0.7,0.8,0.9,1]
         }
     
-    current,good_grid = grid_search(line,shape,param_grid,get_rmse)
+    lowest_error,good_grid = grid_search(line,shape,param_grid,get_abs_max_error)
     print("\n")
     print('Final Grid: ',good_grid)
-    print('Final Model RMSE: ',current)
+    print('Final Error: ',lowest_error)
 
 
     grid_model = PloufModel(
@@ -66,8 +66,10 @@ def main():
     grid_model.run_plouf()
 
 
-    print(get_abs_max_error(grid_model))
-    print(get_rmse(grid_model))
+    print("Absolute Max Error: %f" % get_abs_max_error(grid_model))
+    print("RMSE: %f" % get_rmse(grid_model))
+    print("Durban-Watson Test (residuals): %f" % get_durban_watson(grid_model))
+
 
     plot_model(app,grid_model)
     plot_residuals(grid_model)
