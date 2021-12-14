@@ -23,7 +23,7 @@ Python class for processing, visualizing and manipulating geomagnetic survey dat
 
     - DONE: remove mean from data
 
-    - integrate maping with cartopy
+    - DONE: integrate maping with cartopy
     
     - use z of location to only use points within a tolerance of expected flight height 
     

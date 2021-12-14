@@ -100,6 +100,9 @@ class MagApp:
                         pointb[0], pointa[0], pointb[1], pointa[1])
                 )
             compass.insert(0, 999)
+        else:
+            print("Data must be transormed to UTM")
+            exit()
 
         self.data["Heading"] = compass
 
@@ -138,9 +141,9 @@ class MagApp:
     def subtract_line(self,detrend_strategy: MagDetrender, key_name: str = None):
         if not key_name:
             for key in self.lines.keys():
-                self.lines[key] = detrend_strategy.detrend(self.lines[key])
+                self.lines[key] = detrend_strategy().detrend(self.lines[key])
         else:
-            self.lines[key_name] = detrend_strategy.detrend(self.lines[key_name])
+            self.lines[key_name] = detrend_strategy().detrend(self.lines[key_name])
 
     def _update_data(self) -> None:
         # Q = input('Do you want to only keep patch data that match those seperated into single lines? (y/n)')
@@ -158,10 +161,10 @@ class MagApp:
 
     def separate_lines(self, separation_strategy: DataSeparator,line_params: Dict = None, buffer: int = 10) -> Dict:
         if not line_params:
-            self.lines = separation_strategy.split(self.data)
+            self.lines = separation_strategy().split(self.data)
             self._update_data()
         else:
-            self.lines = separation_strategy.split(self.data,line_params,buffer)
+            self.lines = separation_strategy().split(self.data,line_params,buffer)
             del self.data['geometry']
 
     def export_data(self,export_strategy: DataExporter,override_name: str = None):

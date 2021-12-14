@@ -1,19 +1,23 @@
 from abc import ABC, abstractmethod
 from pandas import DataFrame
-from numpy import mean,array
-from pandas.core.series import Series
+from numpy import mean
 import requests
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 import datetime
 
 class MagCorrector:
 
     def _parse_dates(self, dates: List[str]) -> Tuple:
-
-        dates = sorted(dates, key=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
         
-        startyear,startmonth,startday = dates[0].split('-')
-        endyear,endmonth,endday = dates[-1].split('-')
+        if len(dates) > 1:
+            dates = sorted(dates, key=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
+        
+            startyear,startmonth,startday = dates[0].split('-')
+            endyear,endmonth,endday = dates[-1].split('-')
+       
+        else:
+            startyear,startmonth,startday = dates[0].split('-')
+            endyear,endmonth,endday = dates[0].split('-')
 
         return (startyear,startmonth,startday),(endyear,endmonth,endday)
 
@@ -95,8 +99,8 @@ class NorthSouthDetrend(MagDetrender):
 class EastWestDetrend(MagDetrender):
 
     def _make_detrend_line(self,data: DataFrame):
-        X1, Y1 = data.Easting.min(),data.Mag_detrend.iloc[0]
-        X2, Y2 = data.Easting.max(),data.Mag_detrend.iloc[-1]
+        X1, Y1 = data.Easting.min(),data.Mag_nT.iloc[0]
+        X2, Y2 = data.Easting.max(),data.Mag_nT.iloc[-1]
         dy = (Y2-Y1)
         dx = (X2-X1)
         m = (dy/dx)
@@ -104,7 +108,7 @@ class EastWestDetrend(MagDetrender):
 
         correction_line = []
         for i,_ in enumerate(data.index):
-            mx = data.Northing.values[i] *m
+            mx = data.Easting.values[i] *m
             y = mx +b 
             correction_line.append(y)
 
