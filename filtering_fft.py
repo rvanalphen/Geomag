@@ -14,9 +14,9 @@ from source.separate_data import DistanceSperator
 from source.stats import get_stats
 
 
-DATA_DIR = './'
+DATA_DIR = './cleaned_lines'
 
-FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/Line_15_det_mod.in')# north - south lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-20']
@@ -108,10 +108,22 @@ def main():
     plt.show()
 
 
+    fig, (ax1, ax2) = plt.subplots(nrows=2)
+    ax1.plot(t,  np.real(filtered))
+    Pxx, freqs, bins, im = ax2.specgram(x,Fs=sr,scale='dB')
+    ax2.set_xlabel('time (s)')
+    ax2.set_ylabel('frequencies (Hz)')
+    cbar = plt.colorbar(im, ax=ax2)
+    cbar.set_label('Amplitude (dB)')
+    cbar.minorticks_on()
+    plt.show()
 
-    app.lines['line 1']['filtered'] = np.real(filtered)
 
-    app.export_data(export_strategy=ExportLines())
+
+
+    # app.lines['line 1']['filtered'] = np.real(filtered)
+
+    # app.export_data(export_strategy=ExportLines())
 
 if __name__ == "__main__":
     start = timeit.default_timer()

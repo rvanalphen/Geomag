@@ -5,6 +5,8 @@
 ######################## - INPUTS - #############################
 import timeit
 from pathlib import Path
+
+from matplotlib import scale
 from source.app import MagApp
 from source.correct_data import EastWestDetrend
 from source.geomag import GeoMag
@@ -13,9 +15,9 @@ from source.separate_data import DistanceSperator
 from source.stats import get_stats
 
 
-DATA_DIR = './'
+DATA_DIR = './cleaned_lines'
 
-FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/Line_15_det_mod.in')# north - south lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-20']
@@ -36,6 +38,7 @@ def main():
 
     app = MagApp(parameters=geomag)
     app.data_is_line()
+    plot_mag_profile(app,key_name='line 1',direction='NS')
 
     #preping data 
 
@@ -64,34 +67,42 @@ def main():
     X_oneside =X[:n_oneside]
     t_oneside = t[:n_oneside]
 
-    # plotting freq vs amplitude 
-    plt.figure(figsize = (12, 6))
-    plt.subplot(121)
+    # # plotting freq vs amplitude 
+    # plt.figure(figsize = (12, 6))
+    # plt.subplot(121)
 
-    plt.stem(freq_oneside, np.abs(X_oneside), 'g', \
-            markerfmt=" ", basefmt="-g")
-    plt.xlabel('Freq (Hz)')
-    plt.ylabel('FFT Amplitude |X(freq)|')
+    # plt.stem(freq_oneside, np.abs(X_oneside), 'g', \
+    #         markerfmt=" ", basefmt="-g")
+    # plt.xlabel('Freq (Hz)')
+    # plt.ylabel('FFT Amplitude |X(freq)|')
 
-    # plotting inverse
-    plt.subplot(122)
-    plt.plot(t_oneside, ifft(X_oneside), 'ro',markersize=2)
-    plt.xlabel('Time (s)')
-    plt.ylabel('Amplitude')
-    plt.tight_layout()
+    # # plotting inverse
+    # plt.subplot(122)
+    # plt.plot(t_oneside, ifft(X_oneside), 'ro',markersize=2)
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Amplitude')
+    # plt.tight_layout()
+    # plt.show()
+
+    # # plotting time vs amplitude 
+    # plt.figure(figsize=(12,6))
+    # plt.plot(t[:n_oneside], np.abs(X[:n_oneside]))
+    # plt.xlabel('Period ($seconds$)')
+    # plt.ylabel('FFT Amplitude |X(freq)|')
+
+    # plt.show()
+
+
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2)
+    ax1.plot(t, x)
+    Pxx, freqs, bins, im = ax2.specgram(x,Fs=sr, scale='dB')
+    ax2.set_xlabel('time (s)')
+    ax2.set_ylabel('frequencies (Hz)')
+    cbar = plt.colorbar(im, ax=ax2)
+    cbar.set_label('Amplitude (dB)')
+    cbar.minorticks_on()
     plt.show()
-
-    # plotting time vs amplitude 
-    plt.figure(figsize=(12,6))
-    plt.plot(t[:n_oneside], np.abs(X[:n_oneside]))
-    plt.xlabel('Period ($seconds$)')
-    plt.ylabel('FFT Amplitude |X(freq)|')
-
-    plt.show()
-
-
-
-
 
 
 if __name__ == "__main__":
