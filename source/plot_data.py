@@ -141,12 +141,16 @@ def plot_offset_profile(application: MagApp, offset=150) -> None:
             start_offset += offset
     plt.show()
 
-def plot_model(observed: MagApp, model: PloufModel,key_name='line 1') -> None:
+def plot_model(observed: MagApp, model: PloufModel,key_name='line 1',filt: bool = False) -> None:
     observed = observed.lines[key_name]
 
     fig, ax = plt.subplots(figsize=(10, 10))
 
-    ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
+    if not filt:
+        ax.plot(observed.Northing,observed.Mag_nT,'go',ms=2,label='Observed')
+    else:
+        ax.plot(observed.Northing,observed.filtered,'go',ms=2,label='Observed Filtered')
+
 
     ax.plot(model.results.ydist,model.results.mag,'r-',ms=2,label='Calculated')
 

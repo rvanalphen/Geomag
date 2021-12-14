@@ -1,3 +1,17 @@
 {
-    "python.pythonPath": "/home/robert/anaconda3/envs/mag_class/bin/python"
+    "python.pythonPath": "/home/robert/anaconda3/envs/mag_class/bin/python",
+    "cSpell.words": [
+        "arange",
+        "basefmt",
+        "fftfreq",
+        "fftpack",
+        "ifft",
+        "INEPSG",
+        "markerfmt",
+        "pyplot",
+        "scipy",
+        "xlabel",
+        "xlim",
+        "ylabel"
+    ]
 }

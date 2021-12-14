@@ -6,7 +6,7 @@ from sklearn.model_selection import ParameterGrid
 from source.helper_functions import progress_bar
 from source.load_data import path_to_df
 
-def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_func: Callable):
+def grid_search(observed: DataFrame,shape: DataFrame,parameter_dict: Dict,error_func: Callable, filt: bool = False):
 
     grid_search = ParameterGrid(parameter_dict)
     grid_len = len(list(grid_search))
@@ -16,7 +16,7 @@ def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_
             progress_bar(i,grid_len)
             
             model = PloufModel(
-                line = obserced,
+                line = observed,
                 shape= shape,
                 top_bound= grid['top'],
                 bottom_bound= grid['bottom'],
@@ -25,7 +25,7 @@ def grid_search(obserced: DataFrame,shape: DataFrame,parameter_dict: Dict,error_
                 intensity= grid['intensity']
             )
 
-            model.run_plouf()
+            model.run_plouf(filt)
 
             error = error_func(model)
             
@@ -201,7 +201,7 @@ class PloufModel():
         return df_model
 
 
-    def run_plouf(self):
+    def run_plouf(self,filt: bool =False):
 
         x0 = self.line.Northing.median() 
         y0 = self.line.Easting.median()
@@ -217,6 +217,10 @@ class PloufModel():
         self.results= self.plouf(shapex,shapey,self.top_bound)
 
         self.residuals = self.results.copy()
-        self.residuals["mag"] = (self.line.Mag_nT - self.results.mag)
+
+        if not filt:
+            self.residuals["mag"] = (self.line.Mag_nT - self.results.mag)
+        else:
+            self.residuals["mag"] = (self.line.filtered - self.results.mag)
 
         # print('Model Made')

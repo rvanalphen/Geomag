@@ -12,10 +12,10 @@ from source.stats import get_abs_max_error, get_rmse,ks_test,get_durban_watson
 #TODO write plotting function to show cut line and shape
 ######################## - INPUTS - #############################
 
-DATA_DIR = '/home/robert/Codes/pycodes/geomag/'
+DATA_DIR = './cleaned_lines'
 SHAPE_DIR = '/home/robert/Codes/pycodes/geomag/shapes/'
 
-FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05_line 1_processedOn_2021_12_13.csv')# north - south lines
 # FILE = Path(f'{DATA_DIR}/20191021_224036.txt')# east - west lines
 # INEPSG = '4326'
 # OUTEPSG = '32611'
@@ -23,6 +23,23 @@ FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# no
 # ELEVATION = '0'
 
 ######################### - Main - ###############################
+import matplotlib.pyplot as plt 
+
+def plot_filt(app: MagApp, key_name:str='line 1'):
+    fig, ax = plt.subplots(figsize=(15, 5))
+
+    data = app.lines[key_name]
+    ax.plot(data.Northing, data.filtered, marker="o",
+            linestyle='None', markersize=3)
+
+    ax.set_xlabel("Northing")
+    ax.set_ylabel("Magnetic Signal (nT)")
+
+    ax.set_title(key_name)
+
+    plt.show()
+
+
 
 def main():
 
@@ -35,10 +52,11 @@ def main():
     # creating new MagApp instance with all cleaned data
     app = MagApp(parameters = geomag)
     app.data_is_line()
+    # plot_filt(app)
 
     line = app.lines['line 1']
     
-    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape2.utm'))
+    shape = path_to_df(Path(f'{SHAPE_DIR}/line_56a_shape6.utm'))
     
     
     param_grid = {
@@ -47,7 +65,7 @@ def main():
         'intensity':[0.5,0.6,0.7,0.8,0.9,1]
         }
     
-    lowest_error,good_grid = grid_search(line,shape,param_grid,get_abs_max_error)
+    lowest_error,good_grid = grid_search(line,shape,param_grid,get_rmse,filt=True)
     print("\n")
     print('Final Grid: ',good_grid)
     print('Final Error: ',lowest_error)
@@ -71,7 +89,7 @@ def main():
     print("Durban-Watson Test (residuals): %f" % get_durban_watson(grid_model))
 
 
-    plot_model(app,grid_model)
+    plot_model(app,grid_model,filt=True)
     plot_residuals(grid_model)
     ks_test(app,grid_model,bins=10)
 
