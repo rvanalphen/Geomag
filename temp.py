@@ -13,9 +13,9 @@ from source.separate_data import DistanceSperator
 from source.stats import get_stats
 
 
-DATA_DIR = './cleaned_lines'
+DATA_DIR = './'
 
-FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05_line 1_processedOn_2021_12_13.csv')# north - south lines
+FILE = Path(f'{DATA_DIR}/20191019_235522_line 1_processedOn_2021_12_05.csv')# north - south lines
 INEPSG = '4326'
 OUTEPSG = '32611'
 DATES = ['2019-10-20']
@@ -26,19 +26,22 @@ DATES = ['2019-10-20']
 import numpy as np
 import matplotlib.pyplot as plt 
 
-def plot_filt(app: MagApp, key_name:str='line 1'):
-    fig, ax = plt.subplots(figsize=(15, 5))
+def DFT(x):
+    """
+    Function to calculate the 
+    discrete Fourier Transform 
+    of a 1D real-valued signal x
+    """
 
-    data = app.lines[key_name]
-    ax.plot(data.Northing, data.filtered, marker="o",
-            linestyle='None', markersize=3)
+    N = len(x)
+    n = np.arange(N)
+    k = n.reshape((N, 1))
+    e = np.exp(-2j * np.pi * k * n / N)
+    
+    X = np.dot(e, x)
+    
+    return X
 
-    ax.set_xlabel("Northing")
-    ax.set_ylabel("Magnetic Signal (nT)")
-
-    ax.set_title(key_name)
-
-    plt.show()
 
 
 def main():
@@ -50,16 +53,7 @@ def main():
     app = MagApp(parameters=geomag)
     app.data_is_line()
 
-    plot_mag_profile(app,key_name='line 1')
-    plot_filt(app,key_name='line 1')
 
-    
-
-
-
-
-
-    
 if __name__ == "__main__":
     start = timeit.default_timer()
     print('Processing File(s):\n',FILE)
